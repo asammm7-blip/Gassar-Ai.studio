@@ -1,0 +1,1250 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "c21b19d39881395209af12ef526a825cf4ef800c",
+  "auditBaselineCommit": "5bbeab16221b04c55657b65aba910977f4a5f287",
+  "updatedAt": "2026-11-07T03:47:26.953110+00:00",
+  "currentStage": "02-chat-data",
+  "statusVocabulary": [
+    "pending",
+    "partially-implemented-source-tested",
+    "implemented-source-tested",
+    "implemented-source-tested-native-validation-pending",
+    "blocked"
+  ],
+  "commitConvention": "containing-commit يعني الالتزام الذي يحمل هذا السجل؛ بعد مرحلة لاحقة استبدله بـSHA المثبت السابق للبند الذي تغير فقط. لا يوجد commit ذاتي داخل نفسه.",
+  "counts": {
+    "auditIds": 79,
+    "implementedSourceTested": 2,
+    "implementedSourceTestedNativeValidationPending": 8,
+    "partial": 7,
+    "pending": 62,
+    "blocked": 0,
+    "additions": 10,
+    "additionsPending": 8,
+    "additionsPartial": 2,
+    "additionsImplementedSourceTested": 0,
+    "additionsBlocked": 0
+  },
+  "releaseEvidence": {
+    "nativeApk": "not-produced-or-proven",
+    "nativeDevice": "unverified",
+    "sdk": "Expo SDK 57 retained; native build required, not Expo Go",
+    "githubActions": "workflow-source-added-execution-unverified",
+    "checkpointTool": "parent-handled",
+    "sourceCheckpoint": "stage02-ready-uncommitted-parent-will-save-and-sync",
+    "lastProvenSourceCommit": "f800747990d0263be55a484177a93d391ad03ff1",
+    "stage02ImplementationCommit": "containing-commit"
+  },
+  "auditIds": {
+    "BLD-001": {
+      "title": "دعم ABI المعلن أوسع من قدرة محرك GGUF",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-002": {
+      "title": "سقف 16GiB ليس فحص ملاءمة للهاتف أو مساحة الاستيراد",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-003": {
+      "title": "تهيئة الجلسات غير متسلسلة: جلسة يتيمة وذروة ذاكرة عند التبديل",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-004": {
+      "title": "القيد المقصود لـ Expo Go/الويب لا يفرض قبل استيراد الملفات",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-005": {
+      "title": "نطاق iOS لا يطابق اشتراط إشعارات Android أو دورة الحياة",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-006": {
+      "title": "الإيقاف المؤقت لا يحرر قفل إبقاء المعالج مستيقظاً",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-007": {
+      "title": "lockfile جيد، لكن بيئة EAS وأوامرها ليست عقداً قابلاً لإعادة الإنتاج",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "native-device-unverified",
+      "ownerStage": "10-integration-release",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BLD-008": {
+      "title": "لا يوجد إثبات للمنتج الأصلي يسمح بتحويل نجاح JS إلى اعتماد إصدار",
+      "audit": "docs/audits/2026-11-07/01-build.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "native-device-unverified",
+      "ownerStage": "10-integration-release",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-01": {
+      "title": "دورة حياة السياق غير متسلسلة: تحميل مزدوج، وتفعيل بعد الحذف، وتفريغ أثناء التوليد",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-02": {
+      "title": "قبول 3–10GB ليس سياسة ذاكرة: إعدادات ثابتة وذروة نموذجين",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-03": {
+      "title": "حذف النموذج لا يحذف ملفه، والاستيراد ليس معاملة تخزين قابلة للتراجع",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-04": {
+      "title": "إعدادات الشاشة لا تصل إلى المحادثة، والمعاملات المتقدمة لا تصل إلى llama.cpp",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "03-gguf",
+      "evidence": [
+        "lib/model-settings-storage.ts",
+        "lib/chat-context.tsx",
+        "app/model-settings/index.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "مصدر إعدادات موحد والقيم الأساسية مختبرة؛ sampler mapping/backend capability/clone stop/XTC probability لم تنفذ؛ controls المتقدمة disabled."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "ML-05": {
+      "title": "بيانات القدرات تخمينية ولا تعكس مسارات vision/tools/thinking/embedding الفعلية",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-06": {
+      "title": "نافذة السياق غير محسوبة والاقتطاع/الامتلاء يختفيان من النتيجة",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-07": {
+      "title": "الإلغاء لا يملك الطلب أثناء التهيئة ولا يعرض حالة الإيقاف للمحادثة",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-08": {
+      "title": "قص اسم العرض يزيل .gguf فيتعذر تفعيل نموذج مستورد ويختفي بعد الاستعادة",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ML-09": {
+      "title": "مصفوفة كلمات التوقف المشتركة تتلوث بقوالب النماذج بين الطلبات",
+      "audit": "docs/audits/2026-11-07/02-gguf.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "03-gguf",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-01": {
+      "title": "مفاتيح الويب تحفظ كنص دائم مع وعد حماية غير صحيح",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-02": {
+      "title": "السر يدخل عنوان Gemini ورسائل الخطأ لا تنقح",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-03": {
+      "title": "الطلب السحابي بلا مهلة تطبيقية أو إلغاء أو سياسة تعافٍ",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-04": {
+      "title": "التفعيل يفحص وجود نص فقط وكتالوج ثابت يتجاوز دورة حياة المزود",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-05": {
+      "title": "المسار الاحتياطي يعرض محاكاة قوالب كنجاح دردشة online",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-06": {
+      "title": "إعدادات النموذج المحفوظة لا تصل إلى الطلب وcallback يحتفظ بقيَم قديمة",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "05-cloud",
+      "evidence": [
+        "lib/chat-context.tsx",
+        "lib/model-settings-storage.ts",
+        "tests/cloud-model-service.test.ts",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "النقل الأساسي واستهلاك الإعدادات مختبران بfetch بديل؛ إثبات native transport/قواعد model-specific للمرحلة05."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "CLD-07": {
+      "title": "بناء سجل الطلب يكرر سؤال إعادة التوليد ولا يضبط السياق بالتوكنات",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "05-cloud",
+      "evidence": [
+        "src/chat/request-builder.ts",
+        "tests/cloud-model-service.test.ts",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "تكرار السؤال وإعادة المصدر أصلحا؛ history آخر12 رسالة وليس token budget؛ usage/tokenize/input+output reserve/trimming للمراحل03/04/05."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "CLD-08": {
+      "title": "الرد المختصر يخفي الانقطاع والحجب والاستهلاك",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "CLD-09": {
+      "title": "قابلية طلب Anthropic المباشر من الويب غير مستوفاة في الناقل",
+      "audit": "docs/audits/2026-11-07/03-cloud.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "05-cloud",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-01": {
+      "title": "عقد قبول المرفقات لا يطابق المعالجة والمزود: محتوى مقبول لا يُرسل",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-02": {
+      "title": "تجاهل `fileName/fileSize` من ImagePicker يعطل حدود الصور وتطبيعها",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-03": {
+      "title": "قراءة كاملة بلا حجم حقيقي أو ميزانية مجمعة أو مسار كبير الملفات",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-04": {
+      "title": "قص النص بلا إشعار ولا ميزانية سياق بحسب النموذج",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-05": {
+      "title": "دورة الإرسال قبل قفل التحميل تخفي الأخطاء وتفقد المسودة وتكذب في التقدم",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "04-documents-rag",
+      "evidence": [
+        "src/chat/chat-controller.ts",
+        "app/chat/[id].tsx",
+        "lib/chat-drafts.ts",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "قفل قبلawait وtyped result وretained drafts/retry/عرض skipped منفذة؛ حالات ingest كاملة لكل attachment/reasons/cancel/provenance والحجم الحقيقي/aggregate للمرحلة04."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "ATT-06": {
+      "title": "إعادة التوليد والسياق اللاحق لا يعيدان محتوى المرفق",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "04-documents-rag",
+      "evidence": [
+        "src/chat/request-builder.ts",
+        "src/chat/chat-data.ts",
+        "lib/cloud-model-service.ts",
+        "tests/cloud-model-service.test.ts",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "snapshot يعاد في send/regenerate/history؛ تثبيت originals/files/platform readers والميزانيات للمرحلة04، native payload proof مطلوب."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "ATT-07": {
+      "title": "حفظ URI مؤقت لا يضمن بقاء المرفق مع المحادثة",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-08": {
+      "title": "مسار قراءة المرفقات يستخدم API غير متاح على الويب",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-09": {
+      "title": "تحقق MIME/URI/URL من ادعاءات metadata فقط، والرابط يفتح قبل التحقق",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "ATT-10": {
+      "title": "ربط النص المستخرج باسم الملف يسقط مستنداً عند تكرار الأسماء",
+      "audit": "docs/audits/2026-11-07/04-attachments.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "04-documents-rag",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-01": {
+      "title": "التخزين الفارغ يجعل القراءة صامتة ويغيّر السرعة الافتراضية",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-02": {
+      "title": "الإيقاف يلغي المقطع الحالي لا جلسة القراءة الطويلة",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-03": {
+      "title": "الإيقاف المؤقت على Android يغيّر الملصق فقط",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-04": {
+      "title": "شاشة «المحادثة الصوتية» لا تستقبل ردّ المساعد ولا تنطقه",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-05": {
+      "title": "ضمان «محلي فقط» غير محكم على Android 12، واختيار الخدمة في الدردشة مضلّل",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-06": {
+      "title": "فحص جاهزية العربية والاسترداد من أخطاء الأذونات/الحزم ناقص",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-07": {
+      "title": "المساران يختاران آخر بديل تعرف بدلاً من المرشح الأرجح",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-08": {
+      "title": "دورة STT غير معزولة: تستبدل المسودة وتقبل الجزئي وتسمح بتداخل الجلسات",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-09": {
+      "title": "القراءة التلقائية مرتبطة بتركيب المكوّن لا بوصول رد جديد، وأخطاؤها غير ملتقطة",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "VOC-10": {
+      "title": "اختيار «افتراضي/عربي/إنجليزي» ليس اختيار صوت موثوقاً، وتمرير اللغة يكشف عيباً في الاعتمادية المثبتة",
+      "audit": "docs/audits/2026-11-07/05-voice.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "UI-01": {
+      "title": "تعطيل حفظ المحادثات لا يمنع حفظها، والحذف لا يغطي جميع نسخ السجل",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/chat-repository.ts",
+        "src/chat/chat-controller.ts",
+        "app/settings/index.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "حاجز no-save وجميع الكتابات الاعتيادية مختبرة؛ سجل Gemini القديم غير المنسوب محفوظ للاسترداد ولا يمكن مسحه تلقائياً عند حذف محادثة واحدة. مركز البيانات يوفر قرار مسح/استرداد صريحاً.",
+        "لا ضمان حذف ملفات المرفق المؤقتة قبل مرحلة ملكية الملفات."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-02": {
+      "title": "نسختان متباعدتان من حالة المحادثة وكتابات بلقطات قديمة تفقد التعديلات",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/chat-data.ts",
+        "src/chat/chat-controller.ts",
+        "lib/chat-context.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "اختبار UI/hydration/restart على Android الأصلي مطلوب؛ source queue/reducer/UUID مكتملة."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-03": {
+      "title": "رد متأخر يضاف إلى المحادثة المفتوحة لا المحادثة التي أرسلته",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/chat-controller.ts",
+        "app/chat/[id].tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "إثبات cancel/lifecycle على native مطلوب؛ قفل جميع مستدعي GGUF خارج الدردشة للمرحلة03."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-04": {
+      "title": "إعادة التوليد والتحرير لا يحافظان على مسار الطلب أو سياقه أو فروعه",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/request-builder.ts",
+        "src/chat/chat-controller.ts",
+        "app/chat/[id].tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "اختبار تفاعل واستعادة الفروع على Android مطلوب؛ ملكية مصادر المرفقات الدائمة للمرحلة04."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-05": {
+      "title": "فشل الإرسال يمحو المسودة، والرسالة الأولى تفقد فرصة إعادة المحاولة",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "lib/chat-drafts.ts",
+        "app/chat/[id].tsx",
+        "app/(tabs)/index.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "إثبات focus/keyboard والتنقل على الجهاز مطلوب؛ العقود والرفض/retry والمسودة الأولى مختبرة بالمكوّن الفعلي."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-06": {
+      "title": "حفظ معاملات النموذج لا يصل إلى معاملات الدردشة وقد يعلن النجاح عند فشل التخزين",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "lib/model-settings-storage.ts",
+        "app/model-settings/index.tsx",
+        "lib/chat-context.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "القيم الأساسية موحدة وتصل فوراً والأخطاء ترفض؛ minP/xtcThreshold/typicalP/penaltyRepeat/penaltyLastN معطلة عمداً حتى ربط المحرك والتحقق في03."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-07": {
+      "title": "إعادة التسمية من الرئيسية معطلة، والتثبيت والمفضلة و«الأخيرة» لا تؤثر في عرض السجل",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/chat-data.ts",
+        "app/(tabs)/index.tsx",
+        "components/sidebar-drawer.tsx",
+        "app/chat/[id].tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "تأكيد مرئي/native لإعادة التسمية والمفضلة والتثبيت والأرشفة مطلوب؛ selector ومعرف الحوار منفذان."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "UI-08": {
+      "title": "اللغة والمظهر والاسم والخط ليست تفضيلات تطبيق موحدة",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "09-experience-data",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "UI-09": {
+      "title": "القراءة الصوتية صامتة بالقيم غير المخزنة، وزر الإيقاف المؤقت يعلن نجاحاً لا ينفذ على Android",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "06-system-voice",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "UI-10": {
+      "title": "قياسات ثابتة ومكونات وصول ناقصة تقلص القوائم وتضعف الاستخدام بالعربية",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "09-experience-data",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "UI-11": {
+      "title": "الضغط المتكرر على «التالي» قد يخرج الترحيب من حدود خطواته؛ والبطاقة التالية تحجب التطبيق خمس ثوانٍ",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "09-experience-data",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "UI-12": {
+      "title": "السجل المستعاد بلا مخطط تحقق، والمرفقات لا تملك دورة حفظ/حذف دائمة",
+      "audit": "docs/audits/2026-11-07/06-ui.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "02-chat-data",
+      "evidence": [
+        "src/chat/chat-data.ts",
+        "src/chat/chat-repository.ts",
+        "src/chat/backup.ts",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "غلاف ومخططات hydration وbackup والحدود مختبرة؛ app-owned attachment bytes/hash/cleanup وBlob/IndexedDB وrestart غير منفذة بعد (04)."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "SRV-01": {
+      "title": "النقل غير المشفّر والاستماع على كل الواجهات افتراضياً",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-02": {
+      "title": "تعطيل المصادقة على loopback يثق بصفحات الويب أيضاً",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-03": {
+      "title": "الحدود المضبوطة للحجم والرموز ليست سقوفاً فعلية",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-04": {
+      "title": "اتصالات غير مصادقة تستطيع احتكار فتحتي API والمتابعة",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-05": {
+      "title": "الإيقاف أثناء انتظار الخدمة الأصلية يعيد حالة تشغيل كاذبة",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-06": {
+      "title": "تبديل النموذج ليس معاملة محمية من طلب الشبكة",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-07": {
+      "title": "حالة FGS وأخطاء الترقية/النافذة ليست عقداً مرئياً للخادم",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-08": {
+      "title": "wakelock غير محدود يظل محجوزاً في الوقف المؤقت",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-09": {
+      "title": "بعض خيارات التوافق النصية تُقبل ثم تُتجاهل بصمت",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "SRV-10": {
+      "title": "فشل القياسات يبقي آخر أرقام ناجحة وكأنها حديثة",
+      "audit": "docs/audits/2026-11-07/07-server.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "07-local-server",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-01": {
+      "title": "الحساب المحلي ليس مصادقة موثوقة، وحماية كلمة المرور ضعيفة",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-02": {
+      "title": "لا عزل لبيانات الحسابات أو الضيف، وحذف الحساب يبحث عن مفاتيح غير مستخدمة",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "implemented-source-tested-native-validation-pending",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-and-device-unverified",
+      "ownerStage": "08-backend-identity",
+      "evidence": [
+        "lib/auth-service.ts",
+        "src/chat/chat-repository.ts",
+        "lib/model-settings-storage.ts",
+        "lib/chat-context.tsx",
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts"
+      ],
+      "remaining": [
+        "الحساب الحالي local فقط؛ genuine verified OAuth/session للمرحلة08.",
+        "اختبار تبديل/حذف الحساب على الجهاز وملكية الوسائط للمرحلة04 مطلوب؛ ملفات المستخدم الأصلية لا تحذف."
+      ],
+      "implementationCommit": "containing-commit",
+      "implementedInStage": "02-chat-data"
+    },
+    "BE-03": {
+      "title": "سياسة أصول المتصفح والكوكي تنقل حدود المعاينة إلى الإنتاج",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-04": {
+      "title": "OAuth لا يربط state بعملية دخول، وcallback يقبل الهوية من الرابط",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-05": {
+      "title": "عقد JWT يقبل تطبيقاً مختلفاً وغياب الانتهاء، ويرفض جلسة يصدرها بنفسه",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-06": {
+      "title": "الخروج يمسح كوكي العميل ولا يبطل JWT ذي العمر الطويل",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-07": {
+      "title": "سجلات التشخيص في مسار OAuth قد تسجل بيانات اعتماد وهوية",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-08": {
+      "title": "الخدمة تعلن الصحة ونجاح الدخول رغم غياب اعتماد لازم لاستمرار الجلسة",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "ownerStage": "08-backend-identity",
+      "evidence": [],
+      "remaining": [],
+      "implementationCommit": null
+    },
+    "BE-09": {
+      "title": "ضمان «المستودع المعتمد فقط» لا يتحقق عند تعدد pushurl",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "implemented-source-tested",
+      "sourceValidation": "passed",
+      "nativeValidation": "not-applicable",
+      "ownerStage": "01-release-safety",
+      "evidence": [
+        "scripts/github-sync.py",
+        "scripts/install-github-sync.mjs",
+        ".githooks/post-commit",
+        "tests/github_sync_test.py",
+        "docs/implementation/01-release-safety.md"
+      ],
+      "remaining": [],
+      "implementationCommit": "f800747990d0263be55a484177a93d391ad03ff1"
+    },
+    "BE-10": {
+      "title": "فحوص المزامنة غير مرتبطة بشجرة الالتزام التي ستُرفع",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "implemented-source-tested",
+      "sourceValidation": "passed",
+      "nativeValidation": "not-applicable",
+      "ownerStage": "01-release-safety",
+      "evidence": [
+        "scripts/github-sync.py",
+        "scripts/install-github-sync.mjs",
+        ".githooks/post-commit",
+        "tests/github_sync_test.py",
+        "docs/implementation/01-release-safety.md"
+      ],
+      "remaining": [],
+      "implementationCommit": "f800747990d0263be55a484177a93d391ad03ff1"
+    },
+    "BE-11": {
+      "title": "الأرقام الخضراء لا تتحقق من المصادقة أو الضمانات الحرجة للمزامنة",
+      "audit": "docs/audits/2026-11-07/08-backend.md",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "sync-regressions-passed",
+      "nativeValidation": "native-device-unverified",
+      "ownerStage": "08-backend-identity",
+      "evidence": [
+        "tests/github_sync_test.py",
+        ".github/workflows/source-validation.yml"
+      ],
+      "remaining": [
+        "اختبارات Express/SDK/claims/CSRF/logout/redaction والمصادقة المتخطاة لم تعالج في مرحلة المزامنة.",
+        "الاختبارات الإنشائية للتطبيق متبقية للمرحلة النهائية.",
+        "نجاح تشغيل GitHub Actions وحماية الفرع لم يثبت.",
+        "APK والمنتج الأصلي والجهاز غير مثبتين."
+      ],
+      "implementationCommit": "f800747990d0263be55a484177a93d391ad03ff1"
+    }
+  },
+  "additions": {
+    "ADD-01": {
+      "title": "مركز قدرات وتشخيص جهاز",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": []
+    },
+    "ADD-02": {
+      "title": "مركز بيانات وتصدير/استعادة قابلان للتحقق",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-unverified",
+      "evidence": [
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts",
+        "src/chat/backup.ts"
+      ],
+      "implementationCommit": "containing-commit",
+      "prerequisitesImplemented": [
+        "exportBackup/parseBackup/previewBackup schema1/data2 allowlist/64MiB، controller merge/replace واختبارات مخطط وأخطاء؛ لا Data Center UI/ملفات/تشفير بعد."
+      ]
+    },
+    "ADD-03": {
+      "title": "بث موحد وإيقاف ونتيجة توليد تشخيصية",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": [
+        "typed SendResult وrequest/conversation ownership والإلغاء يحجب late result؛ streaming/usage/finish/backend/native lifecycle غير منفذة."
+      ]
+    },
+    "ADD-04": {
+      "title": "جاهزية صوت النظام ومحادثة نصف مزدوجة",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": [
+        "voice screen يستهلك SendResult الفعلي ومعرف draft للانتقال؛ ليس اعتماد half-duplex STT/TTS."
+      ]
+    },
+    "ADD-05": {
+      "title": "استخراج مستندات وOCR عربي مع مصادر",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": []
+    },
+    "ADD-06": {
+      "title": "RAG للمستندات الكبيرة",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": []
+    },
+    "ADD-07": {
+      "title": "رؤية محلية اختيارية بحزم توافق",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": []
+    },
+    "ADD-08": {
+      "title": "اقتران عملاء وجلسات قابلة للإبطال",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [],
+      "implementationCommit": null,
+      "prerequisitesImplemented": []
+    },
+    "ADD-09": {
+      "title": "مكتبة محادثات وفروع وعرض عربي معرفي",
+      "status": "partially-implemented-source-tested",
+      "sourceValidation": "passed-production-import-regressions",
+      "nativeValidation": "native-ui-unverified",
+      "evidence": [
+        "docs/implementation/02-chat-data.md",
+        "tests/chat-data.test.ts",
+        "tests/chat-stage02-contracts.test.ts",
+        "tests/chat-stage02-ui.test.ts",
+        "src/chat/chat-data.ts",
+        "src/chat/chat-controller.ts"
+      ],
+      "implementationCommit": "containing-commit",
+      "prerequisitesImplemented": [
+        "selectors بحث/مفضلة/أرشفة/تثبيت، فروع تحرير/تجديد/استعادة ونسخ/تقييم؛ لا توحيد RTL/Markdown/translation/accessibility بعد."
+      ]
+    },
+    "ADD-10": {
+      "title": "لوحة موثوقية الإصدار والمزامنة والطاقة",
+      "status": "pending",
+      "sourceValidation": "not-implemented",
+      "nativeValidation": "not-assessed",
+      "evidence": [
+        "scripts/github-sync.py",
+        "tests/github_sync_test.py"
+      ],
+      "implementationCommit": null,
+      "prerequisitesImplemented": [
+        "سجل JSON محلي محرر للمزامنة running/success/failure وSHA/timestamp؛ ليس شاشة تطبيق ولا لوحة طاقة أو إثبات artifact."
+      ]
+    }
+  },
+  "currentStageStatus": "completed-with-validation-gaps",
+  "readyForParentCheckpoint": true,
+  "stage02Evidence": {
+    "report": "docs/implementation/02-chat-data.md",
+    "tests": {
+      "typescript": "passed",
+      "focusedVitest": {
+        "passed": 59,
+        "files": 4
+      },
+      "fullVitest": {
+        "passed": 152,
+        "skipped": 1,
+        "passedFiles": 15,
+        "skippedFiles": 1
+      },
+      "pythonSync": {
+        "passed": 40,
+        "transport": "temporary-repositories-and-mocked-no-live-project-sync"
+      },
+      "lint": {
+        "errors": 0,
+        "warnings": 27
+      },
+      "diffCheck": "passed",
+      "auditFiles": "unchanged"
+    },
+    "checkpoint": "parent-handled",
+    "blockingFailures": [],
+    "pendingNative": [
+      "APK/JSI/llama.rn",
+      "Android UI/focus/keyboard/restart",
+      "actual device lifecycle/cancel",
+      "GitHub Actions execution/remote checkpoint SHA"
+    ],
+    "fileOwnershipPending": [
+      "04 app-owned persistent bytes/hash/Blob store and reference cleanup",
+      "never delete picker originals or GGUF user originals"
+    ],
+    "tokenBudgetsPending": [
+      "12-message history only, not model token accounting",
+      "03 tokenize input+system+history+output reserve",
+      "04 chunk provenance/aggregate memory/disk limits"
+    ],
+    "advancedSamplers": "disabled-until-stage03-supported-backend-mapping"
+  }
+}

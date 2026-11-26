@@ -1,0 +1,8 @@
+#!/bin/sh
+# Sync only complete commits. No skip flag: a failed gate preserves the local commit.
+ROOT=$(git rev-parse --show-toplevel) || exit 0
+cd "$ROOT" || exit 0
+python3 scripts/github-sync.py || {
+  printf '\nGassar.AI: synchronization failed safely; the local commit is preserved. Run pnpm github:sync to retry. See the redacted local status.\n' >&2
+  exit 0
+}

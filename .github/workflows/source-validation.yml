@@ -1,0 +1,46 @@
+name: Source validation (not native release)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'
+      - name: Activate pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+          test "$(pnpm --version)" = "9.12.0"
+      - name: Install locked JS graph (no native lifecycle, no secret environment)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: TypeScript
+        run: pnpm check
+      - name: Production source tests
+        run: pnpm test
+      - name: Synchronization safety regressions (local repositories only)
+        run: pnpm test:sync
+      - name: Lint
+        run: pnpm lint
+      - name: Assert source and lockfile unchanged
+        run: git diff --exit-code

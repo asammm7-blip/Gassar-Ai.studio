@@ -1,0 +1,6 @@
+{
+  "name": "Gassar.AI",
+  "description": "Gassar.AI — مساعد ذكاء اصطناعي عصري يدعم المحادثات، المرفقات، الصوت، وإدارة النماذج السحابية والمحلية",
+  "requestFramePermissions": ["microphone"],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
