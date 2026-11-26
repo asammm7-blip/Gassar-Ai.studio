@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle2, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { useRouter } from '../contexts/RouterContext';
 import { cloudModelService, type CloudAccessResult, type CloudProvider } from '../cloud-model-service';
 
 const PROVIDERS: { id: CloudProvider; envVar: string; defaultModel: string }[] = [
-  { id: 'gemini', envVar: 'GEMINI_API_KEY', defaultModel: 'gemini-2.5-flash' },
+  { id: 'gemini', envVar: 'GEMINI_API_KEY', defaultModel: 'gemini-4-hydrogen' },
   { id: 'openai', envVar: 'OPENAI_API_KEY', defaultModel: 'gpt-4o-mini' },
   { id: 'anthropic', envVar: 'ANTHROPIC_API_KEY', defaultModel: 'claude-3-7-sonnet-latest' },
   { id: 'openrouter', envVar: 'OPENROUTER_API_KEY', defaultModel: 'openrouter/auto' },
 ];
 
 export function CloudModelSettingsPage() {
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const [configured, setConfigured] = useState<Record<CloudProvider, boolean>>({
     gemini: false,
@@ -43,6 +46,8 @@ export function CloudModelSettingsPage() {
     setTesting(null);
   };
 
+  const BackIcon = isEn ? ArrowLeft : ArrowRight;
+
   return (
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <header
@@ -51,15 +56,15 @@ export function CloudModelSettingsPage() {
       >
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => router.back()} className="p-2 rounded-xl hover:bg-black/5 cursor-pointer">
-            <ArrowRight size={20} />
+            <BackIcon size={20} />
           </button>
-          <h1 className="text-lg font-bold">مزودو النماذج السحابية</h1>
+          <h1 className="text-lg font-bold">{isEn ? 'Cloud Providers' : 'مزودو النماذج السحابية'}</h1>
         </div>
         <button
           type="button"
           onClick={() => void loadStatus()}
           className="p-2 rounded-xl hover:bg-black/5 cursor-pointer"
-          title="تحديث الحالة"
+          title={isEn ? 'Refresh' : 'تحديث الحالة'}
         >
           <RefreshCw size={18} style={{ color: 'var(--muted)' }} />
         </button>
@@ -73,7 +78,9 @@ export function CloudModelSettingsPage() {
           >
             <ShieldCheck size={18} style={{ color: 'var(--primary)' }} className="shrink-0 mt-0.5" />
             <span>
-              تُدار مفاتيح واجهات البرمجة بأمان على الخادم عبر متغيرات البيئة دون تخزينها أو كشفها في المتصفح. يمكنك فحص جاهزية كل مزود أدناه.
+              {isEn
+                ? 'Provider API keys are securely managed server-side via environment variables and never exposed to browsers or APK clients.'
+                : 'تُدار مفاتيح واجهات البرمجة بأمان على الخادم عبر متغيرات البيئة دون تخزينها أو كشفها في المتصفح. يمكنك فحص جاهزية كل مزود أدناه.'}
             </span>
           </div>
 
@@ -91,7 +98,7 @@ export function CloudModelSettingsPage() {
                   <div>
                     <h2 className="text-sm font-bold">{cloudModelService.getProviderLabel(item.id)}</h2>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                      متغير البيئة: <code className="font-mono">{item.envVar}</code>
+                      {isEn ? 'Env Var:' : 'متغير البيئة:'} <code className="font-mono">{item.envVar}</code>
                     </p>
                   </div>
 
@@ -103,7 +110,7 @@ export function CloudModelSettingsPage() {
                         color: ready ? 'var(--success)' : 'var(--error)',
                       }}
                     >
-                      {ready ? 'مضبوط' : 'غير مضبوط'}
+                      {ready ? (isEn ? 'Configured' : 'مضبوط') : (isEn ? 'Missing Key' : 'غير مضبوط')}
                     </span>
                     <button
                       type="button"
@@ -113,7 +120,7 @@ export function CloudModelSettingsPage() {
                       style={{ backgroundColor: 'var(--primary)' }}
                     >
                       {isTesting && <Loader2 size={13} className="animate-spin" />}
-                      <span>اختبار الاتصال</span>
+                      <span>{isEn ? 'Test' : 'اختبار الاتصال'}</span>
                     </button>
                   </div>
                 </div>
@@ -128,7 +135,11 @@ export function CloudModelSettingsPage() {
                   >
                     {res.ok ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
                     <span>
-                      {res.ok ? `تم التحقق من الاتصال بنجاح (${res.model})` : res.message}
+                      {res.ok
+                        ? isEn
+                          ? `Verified connection (${res.model})`
+                          : `تم التحقق من الاتصال بنجاح (${res.model})`
+                        : res.message}
                     </span>
                   </div>
                 )}

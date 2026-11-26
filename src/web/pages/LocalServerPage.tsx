@@ -1,23 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Server, CheckCircle2, Cpu, RefreshCw, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Server, CheckCircle2, Cpu, RefreshCw, Info, Smartphone } from 'lucide-react';
 import { useChatContext } from '../contexts/ChatContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { useRouter } from '../contexts/RouterContext';
+import { apiFetch } from '../api-client';
 
 interface ServerStatus {
   mode: string;
   nativeInferenceAvailable: boolean;
+  androidCapacitorReady?: boolean;
   endpoints: Record<string, string>;
 }
 
 export function LocalServerPage() {
   const { state } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/local-server/status');
+      const res = await apiFetch('/api/local-server/status');
       if (res.ok) {
         return (await res.json()) as ServerStatus;
       }
@@ -46,6 +51,8 @@ export function LocalServerPage() {
     };
   }, []);
 
+  const BackIcon = isEn ? ArrowLeft : ArrowRight;
+
   return (
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <header
@@ -54,9 +61,9 @@ export function LocalServerPage() {
       >
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => router.back()} className="p-2 rounded-xl hover:bg-black/5 cursor-pointer">
-            <ArrowRight size={20} />
+            <BackIcon size={20} />
           </button>
-          <h1 className="text-lg font-bold">الخادم المحلي وواجهة API</h1>
+          <h1 className="text-lg font-bold">{isEn ? 'Local Server & API' : 'الخادم المحلي وواجهة API'}</h1>
         </div>
         <button type="button" onClick={() => void loadStatus()} className="p-2 rounded-xl hover:bg-black/5 cursor-pointer">
           <RefreshCw size={18} style={{ color: 'var(--muted)' }} />
@@ -75,9 +82,19 @@ export function LocalServerPage() {
                   <Server size={20} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold">خادم Gassar.AI Web</h2>
+                  <h2 className="text-sm font-bold">Gassar.AI Server</h2>
                   <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                    {loading ? 'جاري التحقق...' : status ? 'متصل وجاهز على المنفذ 3000' : 'تعذر التحقق من الحالة'}
+                    {loading
+                      ? isEn
+                        ? 'Checking status...'
+                        : 'جاري التحقق...'
+                      : status
+                        ? isEn
+                          ? 'Connected & ready on port 3000'
+                          : 'متصل وجاهز على المنفذ 3000'
+                        : isEn
+                          ? 'Could not reach server'
+                          : 'تعذر التحقق من الحالة'}
                   </p>
                 </div>
               </div>
@@ -87,15 +104,15 @@ export function LocalServerPage() {
                   style={{ backgroundColor: 'rgba(52,168,83,0.14)', color: 'var(--success)' }}
                 >
                   <CheckCircle2 size={13} />
-                  <span>نشط</span>
+                  <span>{isEn ? 'Online' : 'نشط'}</span>
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)' }}>
               <Cpu size={15} style={{ color: 'var(--primary)' }} />
-              <span className="font-semibold">النموذج النشط:</span>
-              <span style={{ color: 'var(--muted)' }}>{state.activeModel?.name ?? 'لا يوجد'}</span>
+              <span className="font-semibold">{isEn ? 'Active Model:' : 'النموذج النشط:'}</span>
+              <span style={{ color: 'var(--muted)' }}>{state.activeModel?.name ?? (isEn ? 'None' : 'لا يوجد')}</span>
             </div>
           </div>
 
@@ -103,15 +120,29 @@ export function LocalServerPage() {
             className="flex items-start gap-3 p-4 rounded-2xl border text-xs leading-relaxed"
             style={{ backgroundColor: 'var(--surface-variant)', borderColor: 'var(--border)' }}
           >
+            <Smartphone size={17} style={{ color: 'var(--secondary)' }} className="shrink-0 mt-0.5" />
+            <span>
+              {isEn
+                ? 'Standalone Android APK project (/android, com.gassar.ai) is synced via Capacitor from dist/client. Configure your deployed Gassar.AI server URL in Settings so the Android APK connects cleanly over HTTPS.'
+                : 'مشروع Android APK المستقل (/android، المعرف com.gassar.ai) متزامن عبر Capacitor مع مخرجات البناء dist/client. اضبط عنوان الخادم المنشور في صفحة الإعدادات ليعمل تطبيق Android APK مباشرة عبر HTTPS.'}
+            </span>
+          </div>
+
+          <div
+            className="flex items-start gap-3 p-4 rounded-2xl border text-xs leading-relaxed"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          >
             <Info size={17} style={{ color: 'var(--primary)' }} className="shrink-0 mt-0.5" />
             <span>
-              في تطبيق Android الأصلي، يشغّل Gassar.AI خادم HTTP محلي في الخلفية لخدمة نماذج GGUF عبر الشبكة المحلية. في نسخة الويب الحالية، يعمل خادم Express المدمج كوسيط آمن لمزودي السحابة والبحث الويب.
+              {isEn
+                ? 'Express backend serves secure cloud streaming, PDF/DOCX document parsing, safe web URL reading, and live web search without exposing API keys to client code.'
+                : 'خادم Express يدير البث السحابي المباشر، استخراج مستندات PDF وWord وExcel، قراءة الروابط الآمنة، وبحث الويب دون كشف مفاتيح API للمتصفح.'}
             </span>
           </div>
 
           {status && (
             <div className="p-4 rounded-2xl border space-y-2.5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <h3 className="text-sm font-bold">نقاط النهاية المتاحة</h3>
+              <h3 className="text-sm font-bold">{isEn ? 'Available API Endpoints' : 'نقاط النهاية المتاحة'}</h3>
               <div className="space-y-2">
                 {Object.entries(status.endpoints).map(([name, path]) => (
                   <div

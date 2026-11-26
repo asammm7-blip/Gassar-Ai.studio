@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { ArrowRight, RotateCcw, Save, SlidersHorizontal, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCcw, Save, SlidersHorizontal, Info } from 'lucide-react';
 import { useChatContext } from '../contexts/ChatContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { useRouter } from '../contexts/RouterContext';
 import { useToast } from '../contexts/ToastContext';
 import { DEFAULT_MODEL_SETTINGS, type ModelSettings } from '../chat-data';
 
 export function ModelSettingsPage() {
   const { state, updateModelSettings } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const { showToast, confirm } = useToast();
 
@@ -16,19 +19,20 @@ export function ModelSettingsPage() {
   const activeId = state.activeModel?.id ?? null;
   const form = draft && draft.modelId === activeId ? draft.values : state.modelSettings;
   const setForm = (next: ModelSettings) => setDraft({ modelId: activeId, values: next });
+  const BackIcon = isEn ? ArrowLeft : ArrowRight;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!state.activeModel) {
-      showToast('اختر نموذجاً أولاً قبل حفظ الإعدادات', 'error');
+      showToast(isEn ? 'Select a model first before saving' : 'اختر نموذجاً أولاً قبل حفظ الإعدادات', 'error');
       return;
     }
     setSaving(true);
     try {
       await updateModelSettings(form);
-      showToast('تم حفظ إعدادات النموذج', 'success');
+      showToast(isEn ? 'Model settings saved' : 'تم حفظ إعدادات النموذج', 'success');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر حفظ الإعدادات', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to save settings' : 'تعذر حفظ الإعدادات'), 'error');
     } finally {
       setSaving(false);
     }
@@ -36,16 +40,16 @@ export function ModelSettingsPage() {
 
   const handleReset = async () => {
     const ok = await confirm({
-      title: 'استعادة الافتراضي',
-      message: 'هل تريد إعادة جميع معاملات النموذج إلى القيم الافتراضية؟',
-      confirmLabel: 'استعادة',
+      title: isEn ? 'Reset Defaults' : 'استعادة الافتراضي',
+      message: isEn ? 'Reset all model parameters to defaults?' : 'هل تريد إعادة جميع معاملات النموذج إلى القيم الافتراضية؟',
+      confirmLabel: isEn ? 'Reset' : 'استعادة',
     });
     if (!ok) return;
     setForm({ ...DEFAULT_MODEL_SETTINGS });
     if (state.activeModel) {
       await updateModelSettings(DEFAULT_MODEL_SETTINGS);
     }
-    showToast('تمت استعادة الإعدادات الافتراضية', 'info');
+    showToast(isEn ? 'Defaults restored' : 'تمت استعادة الإعدادات الافتراضية', 'info');
   };
 
   return (
@@ -56,12 +60,12 @@ export function ModelSettingsPage() {
       >
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => router.back()} className="p-2 rounded-xl hover:bg-black/5 cursor-pointer">
-            <ArrowRight size={20} />
+            <BackIcon size={20} />
           </button>
           <div>
-            <h1 className="text-lg font-bold">إعدادات النموذج</h1>
+            <h1 className="text-lg font-bold">{isEn ? 'Model Settings' : 'إعدادات النموذج'}</h1>
             <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
-              {state.activeModel?.name ?? 'لا يوجد نموذج محدد'}
+              {state.activeModel?.name ?? (isEn ? 'No active model' : 'لا يوجد نموذج محدد')}
             </p>
           </div>
         </div>
@@ -72,35 +76,37 @@ export function ModelSettingsPage() {
           style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
         >
           <RotateCcw size={14} />
-          <span>افتراضي</span>
+          <span>{isEn ? 'Default' : 'افتراضي'}</span>
         </button>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
         <form onSubmit={(e) => void handleSave(e)} className="max-w-2xl mx-auto space-y-5">
-          {/* System Instructions */}
           <section className="p-4 rounded-2xl border space-y-2.5" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <label className="block text-sm font-bold">تعليمات النظام (System Prompt)</label>
+            <label className="block text-sm font-bold">{isEn ? 'System Prompt' : 'تعليمات النظام (System Prompt)'}</label>
             <textarea
               value={form.systemInstructions}
               onChange={(e) => setForm({ ...form, systemInstructions: e.target.value })}
               rows={4}
-              placeholder="مثال: أنت مساعد ذكي يقدّم إجابات دقيقة ومنظمة بالعربية..."
+              placeholder={
+                isEn
+                  ? 'Example: You are a helpful assistant providing clear, well-structured answers...'
+                  : 'مثال: أنت مساعد ذكي يقدّم إجابات دقيقة ومنظمة بالعربية...'
+              }
               className="w-full rounded-xl border p-3 text-sm outline-none resize-y"
               style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
             />
           </section>
 
-          {/* Sampling Parameters */}
           <section className="p-4 rounded-2xl border space-y-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-2">
               <SlidersHorizontal size={16} style={{ color: 'var(--primary)' }} />
-              <h2 className="text-sm font-bold">معاملات التوليد</h2>
+              <h2 className="text-sm font-bold">{isEn ? 'Generation Parameters' : 'معاملات التوليد'}</h2>
             </div>
 
             <div>
               <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                <span>درجة الإبداع (Temperature)</span>
+                <span>{isEn ? 'Temperature' : 'درجة الإبداع (Temperature)'}</span>
                 <span style={{ color: 'var(--primary)' }}>{form.temperature.toFixed(2)}</span>
               </div>
               <input
@@ -145,7 +151,7 @@ export function ModelSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1.5">الحد الأقصى للرموز (N Predict)</label>
+                <label className="block text-xs font-semibold mb-1.5">{isEn ? 'Max Tokens (N Predict)' : 'الحد الأقصى للرموز (N Predict)'}</label>
                 <input
                   type="number"
                   min={64}
@@ -160,14 +166,15 @@ export function ModelSettingsPage() {
             </div>
           </section>
 
-          {/* Local Advanced Info */}
           <section
             className="flex items-start gap-3 p-4 rounded-2xl border text-xs leading-relaxed"
             style={{ backgroundColor: 'var(--surface-variant)', borderColor: 'var(--border)', color: 'var(--muted)' }}
           >
             <Info size={16} style={{ color: 'var(--primary)' }} className="shrink-0 mt-0.5" />
             <span>
-              المعاملات المحلية الإضافية (Min P: {form.minP}، Typical P: {form.typicalP}، Repeat Penalty: {form.penaltyRepeat}) تُحفظ ضمن إعدادات النموذج وتُطبَّق تلقائياً عند تشغيل GGUF محلياً.
+              {isEn
+                ? `Top K is forwarded to Gemini 2.5/3, Gemma, Anthropic, and OpenRouter (Gemini 4 manages sampling internally). Local-only GGUF settings (Min P: ${form.minP}, Typical P: ${form.typicalP}, Repeat Penalty: ${form.penaltyRepeat}) are saved per model for native Android inference.`
+                : `يُرسل معامل Top K إلى Gemini 2.5/3 وGemma وAnthropic وOpenRouter (بينما يدير Gemini 4 معاملات العينة تلقائياً). المعاملات المحلية الإضافية (Min P: ${form.minP}، Typical P: ${form.typicalP}، Repeat Penalty: ${form.penaltyRepeat}) محفوظة لتشغيل GGUF الأصلي.`}
             </span>
           </section>
 
@@ -178,7 +185,7 @@ export function ModelSettingsPage() {
             style={{ backgroundColor: 'var(--primary)' }}
           >
             <Save size={16} />
-            <span>{saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}</span>
+            <span>{saving ? (isEn ? 'Saving...' : 'جاري الحفظ...') : (isEn ? 'Save Settings' : 'حفظ الإعدادات')}</span>
           </button>
         </form>
       </main>

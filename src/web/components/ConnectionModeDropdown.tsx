@@ -1,34 +1,43 @@
 import React, { useState } from 'react';
-import { Wifi, WifiOff, Sparkles, ChevronDown, Check, X } from 'lucide-react';
+import { Wifi, WifiOff, Sparkles, ChevronDown, Check, X, AlertCircle } from 'lucide-react';
 import { useChatContext } from '../contexts/ChatContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import type { ConnectionMode } from '../connection-mode';
-
-const MODES: { id: ConnectionMode; label: string; desc: string; icon: React.ReactNode }[] = [
-  {
-    id: 'auto',
-    label: 'تلقائي',
-    desc: 'يستخدم السحابة للنماذج السحابية أو المحلي للنماذج المحلية',
-    icon: <Sparkles size={15} style={{ color: 'var(--primary)' }} />,
-  },
-  {
-    id: 'online',
-    label: 'أونلاين',
-    desc: 'يعتمد على مزودي السحابة المفعّلين على الخادم',
-    icon: <Wifi size={15} style={{ color: 'var(--success)' }} />,
-  },
-  {
-    id: 'offline',
-    label: 'أوفلاين',
-    desc: 'يقصر التشغيل على النموذج المحلي فقط',
-    icon: <WifiOff size={15} style={{ color: 'var(--warning)' }} />,
-  },
-];
 
 export function ConnectionModeDropdown({ compact = false }: { compact?: boolean }) {
   const { state, setConnectionMode } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const [open, setOpen] = useState(false);
 
-  const current = MODES.find((m) => m.id === state.connectionMode) ?? MODES[0];
+  const modes: { id: ConnectionMode; label: string; desc: string; icon: React.ReactNode }[] = [
+    {
+      id: 'auto',
+      label: isEn ? 'Auto' : 'تلقائي',
+      desc: isEn
+        ? 'Uses Cloud API for cloud models or local engine when supported'
+        : 'يستخدم السحابة للنماذج السحابية أو المحلي عند توفره',
+      icon: <Sparkles size={15} style={{ color: 'var(--primary)' }} />,
+    },
+    {
+      id: 'online',
+      label: isEn ? 'Online' : 'أونلاين',
+      desc: isEn
+        ? 'Routes generation through configured server cloud providers'
+        : 'يعتمد على مزودي السحابة المفعّلين على الخادم',
+      icon: <Wifi size={15} style={{ color: 'var(--success)' }} />,
+    },
+    {
+      id: 'offline',
+      label: isEn ? 'Offline' : 'أوفلاين',
+      desc: isEn
+        ? 'Local-only inference (GGUF runtime requires standalone Android APK)'
+        : 'تشغيل محلي فقط (محرك GGUF يتطلب نسخة Android المستقلة)',
+      icon: <WifiOff size={15} style={{ color: 'var(--warning)' }} />,
+    },
+  ];
+
+  const current = modes.find((m) => m.id === state.connectionMode) ?? modes[0];
 
   return (
     <>
@@ -60,7 +69,7 @@ export function ConnectionModeDropdown({ compact = false }: { compact?: boolean 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold">وضع الاتصال</h3>
+              <h3 className="text-base font-bold">{isEn ? 'Connection Mode' : 'وضع الاتصال'}</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -72,7 +81,7 @@ export function ConnectionModeDropdown({ compact = false }: { compact?: boolean 
             </div>
 
             <div className="space-y-2">
-              {MODES.map((m) => {
+              {modes.map((m) => {
                 const selected = state.connectionMode === m.id;
                 return (
                   <button
@@ -102,6 +111,20 @@ export function ConnectionModeDropdown({ compact = false }: { compact?: boolean 
                 );
               })}
             </div>
+
+            {state.connectionMode === 'offline' && (
+              <div
+                className="mt-3 flex items-start gap-2 p-3 rounded-xl border text-[11px]"
+                style={{ backgroundColor: 'rgba(251,188,4,0.1)', borderColor: 'var(--warning)' }}
+              >
+                <AlertCircle size={14} style={{ color: 'var(--warning)' }} className="shrink-0 mt-0.5" />
+                <span>
+                  {isEn
+                    ? 'Browser/PWA cannot execute native llama.cpp GGUF binaries; switch to Auto or Online for live replies.'
+                    : 'المتصفح/PWA لا يشغّل ملفات GGUF الأصلية؛ بدّل إلى تلقائي أو أونلاين للمحادثة السحابية.'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}

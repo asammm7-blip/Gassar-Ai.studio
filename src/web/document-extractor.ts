@@ -1,8 +1,10 @@
 import * as XLSX from 'xlsx';
 import { inflate } from 'pako';
+import { apiFetch } from './api-client';
 
 export type SupportedDocumentMime =
   | 'application/pdf'
+  | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   | 'text/plain'
   | 'text/csv'
   | 'text/markdown'
@@ -126,7 +128,7 @@ function extractPdfStreamText(stream: Uint8Array, compressed: boolean): string {
   }
 }
 
-function extractPdf(base64: string): string {
+function extractPdfLocalFallback(base64: string): string {
   const bytes = base64ToBytes(base64);
   const source = decodeLatin1(bytes);
   const texts: string[] = [];
@@ -141,13 +143,42 @@ function extractPdf(base64: string): string {
     if (text.trim()) texts.push(text);
   }
   if (!texts.length) texts.push(...readPdfLiteralStrings(source));
-  if (!texts.length) throw new Error('لم يعثر مستخرج PDF على نص قابل للقراءة؛ قد يكون الملف صورة ممسوحة أو مشفرًا.');
+  if (!texts.length) throw new Error('لم يعثر مستخرج PDF على نص قابل للقراءة؛ قد يكون الملف صورة ممسوحة أو مشفراً.');
   return cleanText(`## نص PDF المستخرج\n${texts.join('\n')}`);
+}
+
+async function extractViaServer(input: { name: string; mimeType: string; base64: string }): Promise<string> {
+  const response = await apiFetch('/api/extract-document', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = (await response.json().catch(() => ({}))) as { text?: string; error?: string };
+  if (!response.ok || !data.text?.trim()) {
+    throw new Error(data.error || `تعذر استخراج المستند (${response.status}).`);
+  }
+  return cleanText(data.text);
 }
 
 export async function extractDocumentText(input: { name: string; mimeType: string; base64: string }): Promise<string> {
   const mime = input.mimeType.toLowerCase();
-  if (mime === 'application/pdf' || /\.pdf$/i.test(input.name)) return extractPdf(input.base64);
+  if (mime === 'application/pdf' || /\.pdf$/i.test(input.name)) {
+    try {
+      return await extractViaServer(input);
+    } catch (serverError) {
+      try {
+        return extractPdfLocalFallback(input.base64);
+      } catch {
+        throw serverError;
+      }
+    }
+  }
+  if (
+    mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    /\.docx$/i.test(input.name)
+  ) {
+    return extractViaServer(input);
+  }
   if (mime === 'application/vnd.ms-excel' || mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || /\.(xls|xlsx)$/i.test(input.name)) {
     return extractSpreadsheet(input.base64);
   }
@@ -160,9 +191,10 @@ export async function extractDocumentText(input: { name: string; mimeType: strin
 export function isDocumentExtractableMime(mimeType: string, name = ''): boolean {
   const mime = mimeType.toLowerCase();
   return mime === 'application/pdf'
+    || mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     || mime === 'application/vnd.ms-excel'
     || mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     || mime.startsWith('text/')
     || ['application/json', 'application/xml', 'application/rtf'].includes(mime)
-    || /\.(pdf|xls|xlsx|txt|csv|md|json|xml|rtf)$/i.test(name);
+    || /\.(pdf|docx|xls|xlsx|txt|csv|md|json|xml|rtf)$/i.test(name);
 }

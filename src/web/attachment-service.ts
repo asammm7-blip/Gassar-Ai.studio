@@ -27,6 +27,7 @@ export type PreparedInlineAttachment = {
 };
 
 export type ExtractedAttachmentText = { name: string; text: string };
+export type ExtractedLinkText = { url: string; title?: string; text: string };
 export type AttachmentProgressCallback = (progress: {
   current: number;
   total: number;
@@ -41,6 +42,7 @@ export const MAX_TOTAL_ATTACHMENT_BYTES = 64 * 1024 * 1024;
 const ALLOWED_MIME_PREFIXES = ['image/', 'text/'];
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/json',
   'application/xml',
   'application/rtf',
@@ -97,15 +99,30 @@ export function isSupportedMimeType(mimeType: string): boolean {
   return ALLOWED_MIME_TYPES.has(mimeType) || ALLOWED_MIME_PREFIXES.some((prefix) => mimeType.startsWith(prefix));
 }
 
-export function buildAttachmentContext(attachments: ChatAttachment[], extractedText: ExtractedAttachmentText[] = []): string {
+export function buildAttachmentContext(
+  attachments: ChatAttachment[],
+  extractedText: ExtractedAttachmentText[] = [],
+  extractedLinks: ExtractedLinkText[] = [],
+): string {
   if (!attachments.length) return '';
   const extractedByName = new Map<string, string[]>();
   for (const item of extractedText) {
     extractedByName.set(item.name, [...(extractedByName.get(item.name) || []), item.text]);
   }
+  const linksByUrl = new Map<string, ExtractedLinkText>();
+  for (const link of extractedLinks) {
+    linksByUrl.set(link.url, link);
+  }
   const lines = attachments.map((attachment) => {
     const data = attachment.data;
-    if (attachment.type === 'link') return `- رابط: ${data.url}`;
+    if (attachment.type === 'link') {
+      const linkInfo = data.url ? linksByUrl.get(data.url) : undefined;
+      if (linkInfo?.text) {
+        const titlePart = linkInfo.title ? ` (${linkInfo.title})` : '';
+        return `- رابط: ${data.url}${titlePart}\n  محتوى الصفحة المستخرج:\n${linkInfo.text}`;
+      }
+      return `- رابط: ${data.url}`;
+    }
     const size = typeof data.size === 'number' ? `، الحجم ${formatBytes(data.size)}` : '';
     const name = attachment.name || data.name || 'مرفق';
     const matching = extractedByName.get(name) || [];
@@ -186,7 +203,7 @@ export async function extractTextAttachments(
   );
   for (const [index, attachment] of textAttachments.entries()) {
     const name = attachment.name || attachment.data.name || 'مرفق';
-    onProgress?.({ current: index, total: textAttachments.length, name, stage: 'reading' });
+    onProgress?.({ current: index + 1, total: textAttachments.length, name, stage: 'reading' });
     const size = attachment.data.size;
     if (!attachment.data.uri || (typeof size === 'number' && size > 20 * 1024 * 1024)) {
       onProgress?.({ current: index + 1, total: textAttachments.length, name, stage: 'skipped' });
@@ -220,6 +237,7 @@ function inferMimeType(name: string): string {
     webp: 'image/webp',
     gif: 'image/gif',
     pdf: 'application/pdf',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     txt: 'text/plain',
     md: 'text/markdown',
     csv: 'text/csv',

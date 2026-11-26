@@ -5,6 +5,7 @@ import { ChatProvider } from './web/contexts/ChatContext';
 import { RouterProvider, useRouter } from './web/contexts/RouterContext';
 import { ToastProvider } from './web/contexts/ToastContext';
 import { StartupWelcome } from './web/components/StartupWelcome';
+import { OfflineIndicator } from './web/components/OfflineIndicator';
 import { HomePage } from './web/pages/HomePage';
 import { ChatPage } from './web/pages/ChatPage';
 import { ModelsPage } from './web/pages/ModelsPage';
@@ -46,6 +47,7 @@ function AppRoutes() {
         fontSize: `${Math.round(16 * fontScaleFactor)}px`,
       }}
     >
+      <OfflineIndicator />
       {page}
       <StartupWelcome />
     </div>

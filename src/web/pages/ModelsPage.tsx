@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Cpu,
   Cloud,
@@ -10,8 +11,10 @@ import {
   Server,
   KeyRound,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { useChatContext } from '../contexts/ChatContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { useRouter } from '../contexts/RouterContext';
 import { useToast } from '../contexts/ToastContext';
 import { cloudModelService, type CloudModelDefinition } from '../cloud-model-service';
@@ -24,22 +27,30 @@ const RECOMMENDED_GGUF = [
   {
     name: 'Qwen2.5-3B-Instruct (Q4_K_M)',
     size: '~2.0 GB',
-    desc: 'نموذج متوازن وسريع للمحادثة العربية والبرمجة',
+    descAr: 'نموذج متوازن وسريع للمحادثة العربية والبرمجة',
+    descEn: 'Balanced and fast model for multilingual chat & coding',
+    url: 'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF',
   },
   {
     name: 'Gemma-3-4B-IT (Q4_K_M)',
     size: '~2.6 GB',
-    desc: 'نموذج Google خفيف يدعم المهام اليومية والملخصات',
+    descAr: 'نموذج Google خفيف يدعم المهام اليومية والملخصات',
+    descEn: 'Compact Google open model for everyday tasks and summaries',
+    url: 'https://huggingface.co/google/gemma-3-4b-it-qat-q4_0-gguf',
   },
   {
     name: 'Llama-3.2-3B-Instruct (Q4_K_M)',
     size: '~2.0 GB',
-    desc: 'أداء ممتاز على الأجهزة المحمولة والمتوسطة',
+    descAr: 'أداء ممتاز على الأجهزة المحمولة والمتوسطة',
+    descEn: 'Responsive performance for mobile and midrange hardware',
+    url: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF',
   },
 ];
 
 export function ModelsPage() {
   const { state, selectModel } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const { showToast, confirm } = useToast();
 
@@ -70,6 +81,7 @@ export function ModelsPage() {
   }, []);
 
   const cloudModels = cloudModelService.getAvailableModels();
+  const BackIcon = isEn ? ArrowLeft : ArrowRight;
 
   const handleRegisterGguf = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,9 +90,9 @@ export function ModelsPage() {
     try {
       const model = await localModelManager.registerFile(file);
       await refreshModels();
-      showToast(`تم تسجيل ${model.name}`, 'success');
+      showToast(isEn ? `Registered ${model.name}` : `تم تسجيل ${model.name}`, 'success');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر قراءة ملف GGUF', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to inspect GGUF file' : 'تعذر قراءة ملف GGUF'), 'error');
     }
   };
 
@@ -102,9 +114,9 @@ export function ModelsPage() {
     };
     try {
       await selectModel(model);
-      showToast(`تم تفعيل ${def.name}`, 'success');
+      showToast(isEn ? `Activated ${def.name}` : `تم تفعيل ${def.name}`, 'success');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر تفعيل النموذج', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to activate model' : 'تعذر تفعيل النموذج'), 'error');
     }
   };
 
@@ -112,38 +124,37 @@ export function ModelsPage() {
     try {
       await selectModel(model);
       await refreshModels();
-      showToast(`تم تحديد ${model.name}`, 'info');
+      showToast(isEn ? `Selected ${model.name}` : `تم تحديد ${model.name}`, 'info');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر تحديد النموذج', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to select model' : 'تعذر تحديد النموذج'), 'error');
     }
   };
 
   const handleDeleteLocal = async (model: LocalModel) => {
     const ok = await confirm({
-      title: 'حذف النموذج المحلي',
-      message: `هل تريد إزالة "${model.name}" من القائمة؟`,
-      confirmLabel: 'إزالة',
+      title: isEn ? 'Remove Local Model' : 'حذف النموذج المحلي',
+      message: isEn ? `Remove "${model.name}" from the registry?` : `هل تريد إزالة "${model.name}" من القائمة؟`,
+      confirmLabel: isEn ? 'Remove' : 'إزالة',
       destructive: true,
     });
     if (ok) {
       await localModelManager.deleteModel(model.id);
       await refreshModels();
-      showToast('تمت إزالة النموذج', 'info');
+      showToast(isEn ? 'Model removed' : 'تمت إزالة النموذج', 'info');
     }
   };
 
   return (
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
-      {/* Header */}
       <header
         className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 border-b"
         style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => router.back()} className="p-2 rounded-xl hover:bg-black/5 cursor-pointer">
-            <ArrowRight size={20} />
+            <BackIcon size={20} />
           </button>
-          <h1 className="text-lg font-bold">إدارة النماذج</h1>
+          <h1 className="text-lg font-bold">{isEn ? 'Models Manager' : 'إدارة النماذج'}</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -154,7 +165,7 @@ export function ModelsPage() {
             style={{ borderColor: 'var(--border)' }}
           >
             <KeyRound size={14} style={{ color: 'var(--primary)' }} />
-            <span>حالة المزودين</span>
+            <span>{isEn ? 'Providers' : 'حالة المزودين'}</span>
           </button>
           <button
             type="button"
@@ -163,20 +174,19 @@ export function ModelsPage() {
             style={{ borderColor: 'var(--border)' }}
           >
             <Server size={14} style={{ color: 'var(--secondary)' }} />
-            <span>الخادم المحلي</span>
+            <span>{isEn ? 'Server' : 'الخادم المحلي'}</span>
           </button>
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 py-5">
         <div className="max-w-3xl mx-auto space-y-5">
-          {/* Tabs */}
           <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
             {(
               [
-                { id: 'cloud', label: 'السحابية', icon: Cloud },
-                { id: 'local', label: 'المحلية (GGUF)', icon: Cpu },
-                { id: 'available', label: 'المتاحة', icon: Sparkles },
+                { id: 'cloud', label: isEn ? 'Cloud' : 'السحابية', icon: Cloud },
+                { id: 'local', label: isEn ? 'Local (GGUF)' : 'المحلية (GGUF)', icon: Cpu },
+                { id: 'available', label: isEn ? 'Recommended' : 'المتاحة', icon: Sparkles },
               ] as const
             ).map((t) => {
               const active = tab === t.id;
@@ -223,7 +233,7 @@ export function ModelsPage() {
                             color: ready ? 'var(--success)' : 'var(--muted)',
                           }}
                         >
-                          {ready ? 'جاهز على الخادم' : 'المفتاح غير مضبوط'}
+                          {ready ? (isEn ? 'Ready on Server' : 'جاهز على الخادم') : (isEn ? 'Key Not Set' : 'المفتاح غير مضبوط')}
                         </span>
                       </div>
                       <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
@@ -232,17 +242,17 @@ export function ModelsPage() {
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {def.capabilities.vision && (
                           <span className="text-[10px] px-2 py-0.5 rounded-md border" style={{ borderColor: 'var(--border)' }}>
-                            رؤية الصور
+                            {isEn ? 'Vision' : 'رؤية الصور'}
                           </span>
                         )}
                         {def.capabilities.thinking && (
                           <span className="text-[10px] px-2 py-0.5 rounded-md border" style={{ borderColor: 'var(--border)' }}>
-                            تفكير عميق
+                            {isEn ? 'Deep Thinking' : 'تفكير عميق'}
                           </span>
                         )}
                         {def.capabilities.tools && (
                           <span className="text-[10px] px-2 py-0.5 rounded-md border" style={{ borderColor: 'var(--border)' }}>
-                            أدوات وبحث
+                            {isEn ? 'Tools & Search' : 'أدوات وبحث'}
                           </span>
                         )}
                       </div>
@@ -258,7 +268,7 @@ export function ModelsPage() {
                       }}
                     >
                       {isSelected && <Check size={14} />}
-                      <span>{isSelected ? 'مفعّل' : 'تفعيل'}</span>
+                      <span>{isSelected ? (isEn ? 'Active' : 'مفعّل') : (isEn ? 'Select' : 'تفعيل')}</span>
                     </button>
                   </div>
                 );
@@ -274,7 +284,9 @@ export function ModelsPage() {
               >
                 <AlertCircle size={17} style={{ color: 'var(--warning)' }} className="shrink-0 mt-0.5" />
                 <span>
-                  تشغيل ملفات GGUF محلياً عبر llama.cpp متاح في إصدار Android الأصلي. في نسخة الويب يمكنك فحص وتسجيل بيانات الملفات محلياً، واستخدام النماذج السحابية للمحادثة.
+                  {isEn
+                    ? 'On-device GGUF execution via llama.cpp requires the native Android runtime. On Web/PWA you can register & validate GGUF file headers while using Cloud models for chat.'
+                    : 'تشغيل ملفات GGUF محلياً عبر llama.cpp متاح في وقت التشغيل الأصلي على Android. في نسخة الويب/PWA يمكنك التحقق من سلامة ترويسة GGUF وتسجيلها، واستخدام النماذج السحابية للمحادثة.'}
                 </span>
               </div>
 
@@ -293,7 +305,7 @@ export function ModelsPage() {
                 style={{ borderColor: 'var(--primary)', color: 'var(--primary)', backgroundColor: 'var(--surface)' }}
               >
                 <Upload size={18} />
-                <span>تسجيل ملف نموذج GGUF من الجهاز</span>
+                <span>{isEn ? 'Register Local GGUF File' : 'تسجيل ملف نموذج GGUF من الجهاز'}</span>
               </button>
 
               {localModels.length === 0 ? (
@@ -303,7 +315,7 @@ export function ModelsPage() {
                 >
                   <Cpu size={30} className="mx-auto mb-2 opacity-40" style={{ color: 'var(--muted)' }} />
                   <p className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
-                    لا توجد نماذج GGUF مسجلة حتى الآن
+                    {isEn ? 'No GGUF models registered yet' : 'لا توجد نماذج GGUF مسجلة حتى الآن'}
                   </p>
                 </div>
               ) : (
@@ -322,7 +334,7 @@ export function ModelsPage() {
                         <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-bold truncate">{model.name}</h3>
                           <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                            الحجم: {formatBytes(model.size)} · النوع: {model.type}
+                            {isEn ? `Size: ${formatBytes(model.size)}` : `الحجم: ${formatBytes(model.size)}`} · {model.type}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -332,14 +344,14 @@ export function ModelsPage() {
                             className="px-3.5 py-2 rounded-xl text-xs font-bold text-white cursor-pointer"
                             style={{ backgroundColor: isSelected ? 'var(--success)' : 'var(--primary)' }}
                           >
-                            {isSelected ? 'محدد' : 'تحديد'}
+                            {isSelected ? (isEn ? 'Selected' : 'محدد') : (isEn ? 'Select' : 'تحديد')}
                           </button>
                           <button
                             type="button"
                             onClick={() => void handleDeleteLocal(model)}
                             className="p-2 rounded-xl border cursor-pointer"
                             style={{ borderColor: 'var(--border)', color: 'var(--error)' }}
-                            title="حذف"
+                            title={isEn ? 'Delete' : 'حذف'}
                           >
                             <Trash2 size={15} />
                           </button>
@@ -355,12 +367,14 @@ export function ModelsPage() {
           {tab === 'available' && (
             <div className="space-y-3">
               <p className="text-xs px-1" style={{ color: 'var(--muted)' }}>
-                نماذج GGUF مفتوحة موصى بها للتشغيل المحلي على Android:
+                {isEn
+                  ? 'Recommended open-weight GGUF repositories on Hugging Face:'
+                  : 'نماذج GGUF مفتوحة موصى بها للتشغيل المحلي:'}
               </p>
               {RECOMMENDED_GGUF.map((item) => (
                 <div
                   key={item.name}
-                  className="p-4 rounded-2xl border"
+                  className="p-4 rounded-2xl border space-y-2"
                   style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -369,9 +383,19 @@ export function ModelsPage() {
                       {item.size}
                     </span>
                   </div>
-                  <p className="text-xs mt-1.5" style={{ color: 'var(--muted)' }}>
-                    {item.desc}
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                    {isEn ? item.descEn : item.descAr}
                   </p>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold hover:underline"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    <span>Hugging Face</span>
+                    <ExternalLink size={12} />
+                  </a>
                 </div>
               ))}
             </div>

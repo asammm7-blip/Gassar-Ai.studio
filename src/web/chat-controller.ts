@@ -27,6 +27,13 @@ export type SendResult =
       userMessageId?: string;
     };
 
+export interface StreamingDraftState {
+  requestId: string;
+  conversationId: string;
+  text: string;
+  reasoning?: string;
+}
+
 export interface ControllerState {
   store: ChatStore;
   hydrated: boolean;
@@ -38,6 +45,7 @@ export interface ControllerState {
   connectionMode: ConnectionMode;
   error: string | null;
   pending: { requestId: string; conversationId: string } | null;
+  streaming: StreamingDraftState | null;
   userMessages: string[];
   warnings: string[];
 }
@@ -45,7 +53,11 @@ export interface ControllerState {
 export interface ChatDependencies {
   repository: ChatRepository;
   uuid(): string;
-  generate(request: BuiltRequest, signal: AbortSignal): Promise<string | { text: string; reasoning?: string }>;
+  generate(
+    request: BuiltRequest,
+    signal: AbortSignal,
+    onDelta?: (chunk: { type: 'text' | 'reasoning'; delta: string }) => void,
+  ): Promise<string | { text: string; reasoning?: string }>;
   cancelLocal?(): Promise<void>;
   activate?(model: LocalModel): Promise<void>;
   reader?: AttachmentReader;
@@ -74,6 +86,7 @@ export class ChatController {
     connectionMode: 'auto',
     error: null,
     pending: null,
+    streaming: null,
     userMessages: [],
     warnings: [],
   };
@@ -133,6 +146,7 @@ export class ChatController {
       namespace: namespaceFor(identity),
       store: EMPTY_STORE,
       pending: null,
+      streaming: null,
       settingsByModel: {},
       modelSettings: { ...DEFAULT_MODEL_SETTINGS },
       error: null,
@@ -332,6 +346,7 @@ export class ChatController {
     const op = this.operation;
     if (!op) return;
     op.abort.abort();
+    this.set({ streaming: null });
     if (op.route === 'local') await this.deps.cancelLocal?.();
   }
 
@@ -408,7 +423,7 @@ export class ChatController {
       route: undefined as BuiltRequest['route'] | undefined,
     };
     this.operation = op;
-    this.set({ pending: { requestId: op.requestId, conversationId: c.id }, error: null });
+    this.set({ pending: { requestId: op.requestId, conversationId: c.id }, streaming: null, error: null });
     let accepted = false;
     const owns = () => this.operation === op && this.epoch === op.epoch && !!this.state.store.byId[c.id] && !op.abort.signal.aborted;
 
@@ -448,7 +463,26 @@ export class ChatController {
       accepted = true;
       await this.save();
       if (!owns()) throw new Error('cancelled');
-      const generated = await this.deps.generate(request, op.abort.signal);
+
+      let streamedText = '';
+      let streamedReasoning = '';
+      const generated = await this.deps.generate(request, op.abort.signal, (chunk) => {
+        if (!owns()) return;
+        if (chunk.type === 'reasoning') {
+          streamedReasoning += chunk.delta;
+        } else {
+          streamedText += chunk.delta;
+        }
+        this.set({
+          streaming: {
+            requestId: op.requestId,
+            conversationId: c.id,
+            text: streamedText,
+            ...(streamedReasoning ? { reasoning: streamedReasoning } : {}),
+          },
+        });
+      });
+
       const generatedText = typeof generated === 'string' ? generated : generated.text;
       const generatedReasoning = typeof generated === 'string' ? undefined : generated.reasoning;
       const separated = separateEmbeddedReasoning(generatedText, generatedReasoning);
@@ -476,6 +510,7 @@ export class ChatController {
         ...(reasoning ? { reasoning } : {}),
         ...(versions ? { versions, activeVersion: versions.length - 1, feedback: null } : {}),
       };
+      this.set({ streaming: null });
       this.reduce({ type: 'patchMessage', id: c.id, messageId: target.id, patch: { generationStatus: 'complete' } });
       this.reduce({ type: 'append', id: c.id, message });
       await this.save();
@@ -525,7 +560,7 @@ export class ChatController {
             this.reduce({ type: 'patchMessage', id: c.id, messageId: target.id, patch: { generationStatus: 'cancelled' } });
             void this.save().catch(() => undefined);
           }
-          this.set({ pending: null });
+          this.set({ pending: null, streaming: null });
         }
       }
     }

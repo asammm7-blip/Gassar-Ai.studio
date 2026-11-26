@@ -8,11 +8,12 @@ import { ChatRepository } from '../chat-repository';
 import { ChatController } from '../chat-controller';
 import { selectConversations } from '../chat-data';
 import { exportBackup, parseBackup, previewBackup } from '../backup';
+import { defaultAttachmentReader } from '../request-builder';
 import type { ConnectionMode } from '../connection-mode';
-import { formatWebContext, searchWeb } from '../web-search-service';
+import { fetchUrlContent, formatWebContext, searchWeb } from '../web-search-service';
 
 export type { Message, Conversation, ModelSettings } from '../chat-data';
-export type { SendResult } from '../chat-controller';
+export type { SendResult, StreamingDraftState } from '../chat-controller';
 
 function makeController() {
   const repository = new ChatRepository(storage);
@@ -23,27 +24,43 @@ function makeController() {
     cancelLocal: () => localModelManager.stopGeneration(),
     readSettings: (id, namespace) => getModelSettings(id, namespace),
     saveSettings: (id, settings, namespace) => saveModelSettings(id, settings, namespace),
-    generate: async (request, signal) => {
+    reader: {
+      ...defaultAttachmentReader,
+      fetchUrl: fetchUrlContent,
+    },
+    generate: async (request, signal, onDelta) => {
       if (signal.aborted) throw new Error('cancelled');
       const s = request.settings;
-      const webContext = request.features.web ? formatWebContext(await searchWeb(request.prompt)) : '';
+      const isGeminiNativeSearch =
+        request.route === 'cloud' &&
+        request.model.provider === 'gemini' &&
+        !(request.model.remoteModel || '').toLowerCase().startsWith('gemma');
+
+      const webContext =
+        request.features.web && !isGeminiNativeSearch ? formatWebContext(await searchWeb(request.prompt)) : '';
       const promptWithWeb = request.prompt + webContext;
+
       if (request.route === 'local') {
         return localModelManager.generateResponseWithModelDetailed();
       }
-      return cloudModelService.generateResponse({
-        provider: request.model.provider!,
-        model: request.model.remoteModel!,
-        userMessage: promptWithWeb,
-        systemPrompt: s.systemInstructions,
-        history: request.history,
-        attachments: request.attachments,
-        temperature: s.temperature,
-        topP: s.topP,
-        maxOutputTokens: s.nPredict,
-        thinking: request.features.thinking,
-        signal,
-      });
+      return cloudModelService.streamResponse(
+        {
+          provider: request.model.provider!,
+          model: request.model.remoteModel!,
+          userMessage: promptWithWeb,
+          systemPrompt: s.systemInstructions,
+          history: request.history,
+          attachments: request.attachments,
+          temperature: s.temperature,
+          topP: s.topP,
+          topK: s.topK,
+          maxOutputTokens: s.nPredict,
+          thinking: request.features.thinking,
+          webSearch: request.features.web,
+          signal,
+        },
+        onDelta,
+      );
     },
   });
   return controller;
@@ -126,14 +143,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     void (async () => {
       clearChatDrafts();
-      await controller.switchIdentity({ kind: 'guest' });
-      if (!mounted) return;
-      const [mode, savedModelJson, providers] = await Promise.all([
+      const [mode, savedModelJson] = await Promise.all([
         storage.getItem('connectionMode'),
         storage.getItem('activeModel'),
-        cloudModelService.getConfiguredProviders(),
       ]);
       if (!mounted) return;
+
       let restoredModel: LocalModel | null = null;
       if (savedModelJson) {
         try {
@@ -143,29 +158,43 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           restoredModel = null;
         }
       }
-      if (!restoredModel) {
-        const firstConfigured = cloudModelService
-          .getAvailableModels()
-          .find((m) => providers[m.provider]);
-        if (firstConfigured) {
-          restoredModel = {
-            id: firstConfigured.id,
-            name: firstConfigured.name,
-            path: '',
-            size: 0,
-            type: 'language',
-            isLoaded: false,
-            isActive: true,
-            version: 'cloud',
-            description: firstConfigured.description,
-            source: 'cloud',
-            provider: firstConfigured.provider,
-            remoteModel: firstConfigured.model,
-            capabilities: firstConfigured.capabilities,
-          };
+
+      const toCloudLocalModel = (def: ReturnType<typeof cloudModelService.getAvailableModels>[number]): LocalModel => ({
+        id: def.id,
+        name: def.name,
+        path: '',
+        size: 0,
+        type: 'language',
+        isLoaded: false,
+        isActive: true,
+        version: 'cloud',
+        description: def.description,
+        source: 'cloud',
+        provider: def.provider,
+        remoteModel: def.model,
+        capabilities: def.capabilities,
+      });
+
+      const available = cloudModelService.getAvailableModels();
+      if (!restoredModel && available[0]) {
+        restoredModel = toCloudLocalModel(available[0]);
+      }
+
+      controller.restoreModel(restoredModel, mode === 'offline' || mode === 'online' ? mode : 'auto');
+      await controller.switchIdentity({ kind: 'guest' });
+      if (!mounted) return;
+
+      if (!savedModelJson) {
+        const providers = await cloudModelService.getConfiguredProviders();
+        if (!mounted) return;
+        const firstConfigured = available.find((m) => providers[m.provider]);
+        if (firstConfigured && firstConfigured.id !== restoredModel?.id) {
+          controller.restoreModel(
+            toCloudLocalModel(firstConfigured),
+            mode === 'offline' || mode === 'online' ? mode : 'auto',
+          );
         }
       }
-      controller.restoreModel(restoredModel, mode === 'offline' || mode === 'online' ? mode : 'auto');
     })().catch(() => controller.showUserMessage('تعذر استعادة النموذج/الإعدادات؛ اختر النموذج مرة أخرى.'));
 
     return () => {

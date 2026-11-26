@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   SlidersHorizontal,
   PlusSquare,
@@ -24,6 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useChatContext } from '../contexts/ChatContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 import { useRouter } from '../contexts/RouterContext';
 import { useToast } from '../contexts/ToastContext';
 import { displayedContent } from '../chat-data';
@@ -37,6 +39,7 @@ import { ConnectionModeDropdown } from '../components/ConnectionModeDropdown';
 import { AssistantMessageActions, ReasoningCodeBlock } from '../components/AssistantMessageActions';
 import { UserMessageActions } from '../components/UserMessageActions';
 import { ProcessingBubbles } from '../components/ProcessingBubbles';
+import { translate } from '../i18n';
 
 interface SpeechRecognitionInstance {
   lang: string;
@@ -76,6 +79,8 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     updateMessage,
     restoreBranch,
   } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const { confirm, prompt, showToast } = useToast();
 
@@ -101,10 +106,12 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
 
   const conversation = state.conversationsById[conversationId] ?? state.currentConversation;
 
-  // Scroll to bottom when messages change
+  const streamingDraft =
+    state.streaming && state.streaming.conversationId === conversationId ? state.streaming : null;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation?.messages.length, state.pending?.requestId]);
+  }, [conversation?.messages.length, state.pending?.requestId, streamingDraft?.text]);
 
   const runSend = async (text: string, sendAttachments: ChatAttachment[]) => {
     const result = await sendMessage(
@@ -112,9 +119,13 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
       sendAttachments,
       (progress) => {
         if (progress.stage === 'reading') {
-          setAttachmentStatus(`جاري تجهيز المرفق (${progress.current}/${progress.total}): ${progress.name}`);
+          setAttachmentStatus(
+            isEn
+              ? `Preparing attachment (${progress.current}/${progress.total}): ${progress.name}`
+              : `جاري تجهيز المرفق (${progress.current}/${progress.total}): ${progress.name}`,
+          );
         } else if (progress.stage === 'ready') {
-          setAttachmentStatus(`تمت قراءة: ${progress.name}`);
+          setAttachmentStatus(isEn ? `Ready: ${progress.name}` : `تمت قراءة: ${progress.name}`);
         }
       },
       { thinking: thinkingEnabled, web: webSearchEnabled },
@@ -122,7 +133,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     setAttachmentStatus(null);
     if (result.status === 'complete') {
       const tts = await getTtsSettings();
-      if (tts.autoRead) {
+      if (tts.enabled && tts.autoRead) {
         void speakResponseFor(result.message.id, displayedContent(result.message), tts).catch(() => undefined);
       }
     } else if (result.status === 'refused' || result.status === 'failed') {
@@ -130,7 +141,6 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     }
   };
 
-  // Consume initial draft query param if navigated from Home or Voice
   useEffect(() => {
     if (!state.hydrated || !conversation || conversation.id !== conversationId) return;
     const params = new URLSearchParams(router.search);
@@ -156,7 +166,9 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     if (state.pending) return;
     const trimmed = inputText.trim();
     if (!trimmed && attachments.length === 0) return;
-    const payloadText = trimmed || 'حلّل المرفقات المرسلة وأعطني ملخصاً واضحاً.';
+    const payloadText =
+      trimmed ||
+      (isEn ? 'Analyze the attached items and give me a clear summary.' : 'حلّل المرفقات المرسلة وأعطني ملخصاً واضحاً.');
     const payloadAttachments = [...attachments];
     setInputText('');
     setAttachments([]);
@@ -171,12 +183,17 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     }
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      showToast('الإدخال الصوتي المباشر غير مدعوم في هذا المتصفح. يمكنك استخدام الكتابة أو صفحة الصوت.', 'error');
+      showToast(
+        isEn
+          ? 'Live voice dictation is not supported in this browser.'
+          : 'الإدخال الصوتي المباشر غير مدعوم في هذا المتصفح. يمكنك استخدام الكتابة أو صفحة الصوت.',
+        'error',
+      );
       return;
     }
     try {
       const rec = new Ctor();
-      rec.lang = 'ar-SA';
+      rec.lang = isEn ? 'en-US' : 'ar-SA';
       rec.interimResults = true;
       rec.continuous = false;
       rec.onresult = (event) => {
@@ -197,7 +214,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
       setDictating(true);
     } catch {
       setDictating(false);
-      showToast('تعذر بدء الميكروفون في المتصفح', 'error');
+      showToast(isEn ? 'Could not start microphone' : 'تعذر بدء الميكروفون في المتصفح', 'error');
     }
   };
 
@@ -210,14 +227,14 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     setMenuOpen(false);
     if (!conversation) return;
     const text = conversation.messages
-      .map((m) => `${m.role === 'user' ? 'أنت' : 'Gassar.AI'}: ${displayedContent(m)}`)
+      .map((m) => `${m.role === 'user' ? (isEn ? 'You' : 'أنت') : 'Gassar.AI'}: ${displayedContent(m)}`)
       .join('\n\n');
     try {
       if (navigator.share) {
         await navigator.share({ title: conversation.title, text: text || conversation.title });
       } else {
         await navigator.clipboard.writeText(text || conversation.title);
-        showToast('تم نسخ المحادثة للمشاركة', 'success');
+        showToast(isEn ? 'Conversation copied for sharing' : 'تم نسخ المحادثة للمشاركة', 'success');
       }
     } catch {
       // cancelled
@@ -228,13 +245,13 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     setMenuOpen(false);
     if (!conversation) return;
     const next = await prompt({
-      title: 'إعادة تسمية المحادثة',
+      title: isEn ? 'Rename Conversation' : 'إعادة تسمية المحادثة',
       defaultValue: conversation.title,
-      placeholder: 'العنوان الجديد...',
+      placeholder: isEn ? 'New title...' : 'العنوان الجديد...',
     });
     if (next && next.trim()) {
       await renameConversation(conversation.id, next.trim());
-      showToast('تم تغيير اسم المحادثة', 'success');
+      showToast(isEn ? 'Conversation renamed' : 'تم تغيير اسم المحادثة', 'success');
     }
   };
 
@@ -242,9 +259,9 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
     setMenuOpen(false);
     if (!conversation) return;
     const ok = await confirm({
-      title: 'حذف المحادثة',
-      message: `هل تريد حذف "${conversation.title}" نهائياً؟`,
-      confirmLabel: 'حذف',
+      title: isEn ? 'Delete Conversation' : 'حذف المحادثة',
+      message: isEn ? `Permanently delete "${conversation.title}"?` : `هل تريد حذف "${conversation.title}" نهائياً؟`,
+      confirmLabel: isEn ? 'Delete' : 'حذف',
       destructive: true,
     });
     if (ok) {
@@ -255,6 +272,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
 
   const isGenerating = Boolean(state.pending && state.pending.conversationId === conversationId);
   const branches = useMemo(() => conversation?.branches ?? [], [conversation?.branches]);
+  const BackIcon = isEn ? ArrowLeft : ArrowRight;
 
   if (!state.hydrated) {
     return (
@@ -262,7 +280,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
         className="flex items-center justify-center h-full min-h-screen"
         style={{ backgroundColor: 'var(--background)', color: 'var(--muted)' }}
       >
-        <span className="text-sm font-semibold">جاري تحميل المحادثة...</span>
+        <span className="text-sm font-semibold">{isEn ? 'Loading conversation...' : 'جاري تحميل المحادثة...'}</span>
       </div>
     );
   }
@@ -274,14 +292,14 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
         style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
       >
         <AlertCircle size={36} style={{ color: 'var(--muted)' }} />
-        <p className="text-base font-bold">لم يتم العثور على هذه المحادثة</p>
+        <p className="text-base font-bold">{isEn ? 'Conversation not found' : 'لم يتم العثور على هذه المحادثة'}</p>
         <button
           type="button"
           onClick={() => router.replace('/')}
           className="px-5 py-2.5 rounded-xl text-sm font-bold text-white cursor-pointer"
           style={{ backgroundColor: 'var(--primary)' }}
         >
-          العودة للرئيسية
+          {translate(language, 'backHome')}
         </button>
       </div>
     );
@@ -293,7 +311,6 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
       style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
       onClick={() => menuOpen && setMenuOpen(false)}
     >
-      {/* Header */}
       <header
         className="sticky top-0 z-20 flex items-center justify-between gap-2 px-3 sm:px-4 py-3 border-b"
         style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
@@ -303,15 +320,17 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             type="button"
             onClick={() => router.push('/')}
             className="p-2 rounded-xl hover:bg-black/5 cursor-pointer shrink-0"
-            aria-label="العودة للرئيسية"
+            aria-label={translate(language, 'backHome')}
           >
-            <ArrowRight size={20} />
+            <BackIcon size={20} />
           </button>
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-sm sm:text-base font-bold truncate">{conversation.title || 'محادثة جديدة'}</h1>
+            <h1 className="text-sm sm:text-base font-bold truncate">
+              {conversation.title || translate(language, 'newChat')}
+            </h1>
             <p className="text-[11px] truncate" style={{ color: 'var(--muted)' }}>
-              {state.activeModel?.name ?? 'لم يُختر نموذج'}
+              {state.activeModel?.name ?? (isEn ? 'No model selected' : 'لم يُختر نموذج')}
             </p>
           </div>
         </div>
@@ -321,7 +340,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             type="button"
             onClick={() => router.push('/model-settings')}
             className="p-2 rounded-xl hover:bg-black/5 cursor-pointer"
-            title="إعدادات النموذج"
+            title={translate(language, 'modelSettings')}
           >
             <SlidersHorizontal size={18} style={{ color: 'var(--muted)' }} />
           </button>
@@ -329,7 +348,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             type="button"
             onClick={handleNewChat}
             className="p-2 rounded-xl hover:bg-black/5 cursor-pointer"
-            title="محادثة جديدة"
+            title={translate(language, 'newChat')}
           >
             <PlusSquare size={18} style={{ color: 'var(--primary)' }} />
           </button>
@@ -337,14 +356,14 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             className="p-2 rounded-xl hover:bg-black/5 cursor-pointer"
-            title="خيارات المحادثة"
+            title={isEn ? 'Options' : 'خيارات المحادثة'}
           >
             <MoreVertical size={18} style={{ color: 'var(--muted)' }} />
           </button>
 
           {menuOpen && (
             <div
-              className="absolute left-0 top-11 z-30 w-48 rounded-2xl border shadow-xl p-1.5 space-y-0.5"
+              className={`absolute ${isEn ? 'right-0' : 'left-0'} top-11 z-30 w-48 rounded-2xl border shadow-xl p-1.5 space-y-0.5`}
               style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               <button
@@ -353,7 +372,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-black/5 cursor-pointer"
               >
                 <Share2 size={14} />
-                <span>مشاركة المحادثة</span>
+                <span>{isEn ? 'Share Chat' : 'مشاركة المحادثة'}</span>
               </button>
               <button
                 type="button"
@@ -364,7 +383,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-black/5 cursor-pointer"
               >
                 <Pin size={14} />
-                <span>{conversation.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span>
+                <span>{conversation.pinned ? (isEn ? 'Unpin' : 'إلغاء التثبيت') : (isEn ? 'Pin' : 'تثبيت')}</span>
               </button>
               <button
                 type="button"
@@ -372,7 +391,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-black/5 cursor-pointer"
               >
                 <Pencil size={14} />
-                <span>إعادة تسمية</span>
+                <span>{isEn ? 'Rename' : 'إعادة تسمية'}</span>
               </button>
               <button
                 type="button"
@@ -383,7 +402,15 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-black/5 cursor-pointer"
               >
                 <Star size={14} />
-                <span>{conversation.favorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}</span>
+                <span>
+                  {conversation.favorite
+                    ? isEn
+                      ? 'Remove Favorite'
+                      : 'إزالة من المفضلة'
+                    : isEn
+                      ? 'Add Favorite'
+                      : 'إضافة للمفضلة'}
+                </span>
               </button>
               <button
                 type="button"
@@ -394,7 +421,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-black/5 cursor-pointer"
               >
                 <Archive size={14} />
-                <span>{conversation.archived ? 'إلغاء الأرشفة' : 'أرشفة'}</span>
+                <span>{conversation.archived ? (isEn ? 'Unarchive' : 'إلغاء الأرشفة') : (isEn ? 'Archive' : 'أرشفة')}</span>
               </button>
               <button
                 type="button"
@@ -406,7 +433,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
               >
                 <span className="flex items-center gap-2">
                   <GitBranch size={14} />
-                  <span>الفروع المحفوظة</span>
+                  <span>{translate(language, 'savedBranches')}</span>
                 </span>
                 <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
                   {branches.length}
@@ -419,14 +446,13 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 style={{ color: 'var(--error)' }}
               >
                 <Trash2 size={14} />
-                <span>حذف المحادثة</span>
+                <span>{isEn ? 'Delete Chat' : 'حذف المحادثة'}</span>
               </button>
             </div>
           )}
         </div>
       </header>
 
-      {/* Error Banner */}
       {state.error && (
         <div
           className="px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b"
@@ -437,7 +463,6 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
         </div>
       )}
 
-      {/* Messages Area */}
       <main className="flex-1 overflow-y-auto px-3 sm:px-5 py-4">
         <div className="max-w-3xl mx-auto space-y-5">
           {conversation.messages.length === 0 && !isGenerating && (
@@ -448,9 +473,11 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
               >
                 <Sparkles size={24} />
               </div>
-              <h2 className="text-lg font-bold">ابدأ محادثة مع {state.activeModel?.name ?? 'Gassar.AI'}</h2>
+              <h2 className="text-lg font-bold">
+                {translate(language, 'startConversationWith', { model: state.activeModel?.name ?? 'Gassar.AI' })}
+              </h2>
               <p className="text-xs max-w-sm mx-auto" style={{ color: 'var(--muted)' }}>
-                اكتب رسالتك في الأسفل أو أرفق صوراً أو ملفات PDF وExcel، ويمكنك تفعيل التفكير العميق أو البحث في الويب.
+                {translate(language, 'startConversationHint')}
               </p>
             </div>
           )}
@@ -498,7 +525,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                       }}
                     >
                       <RotateCcw size={12} />
-                      <span>إعادة المحاولة</span>
+                      <span>{translate(language, 'retry')}</span>
                     </button>
                   )}
                 </div>
@@ -543,25 +570,52 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             );
           })}
 
-          {isGenerating && (
-            <ProcessingBubbles
-              attachmentStatus={attachmentStatus}
-              thinkingActive={thinkingEnabled}
-              modelName={state.activeModel?.name}
-            />
-          )}
+          {isGenerating &&
+            (streamingDraft && (streamingDraft.text || streamingDraft.reasoning) ? (
+              <div className="flex items-start gap-2.5">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 mt-0.5 shadow-xs animate-pulse"
+                  style={{ background: 'linear-gradient(135deg, var(--primary), var(--secondary))' }}
+                >
+                  <Sparkles size={15} />
+                </div>
+                <div
+                  className="flex-1 min-w-0 rounded-3xl rounded-ss-md px-4 py-3.5 border shadow-xs"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--primary)',
+                    color: 'var(--foreground)',
+                  }}
+                >
+                  {state.activeModel?.name && (
+                    <p className="text-[11px] font-bold mb-1.5" style={{ color: 'var(--primary)' }}>
+                      {state.activeModel.name}
+                    </p>
+                  )}
+                  {streamingDraft.reasoning && <ReasoningCodeBlock reasoning={streamingDraft.reasoning} />}
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed break-words">
+                    {streamingDraft.text || (isEn ? 'Thinking...' : 'جاري التفكير...')}
+                    <span className="inline-block w-1.5 h-4 ms-1 align-middle animate-pulse" style={{ backgroundColor: 'var(--primary)' }} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <ProcessingBubbles
+                attachmentStatus={attachmentStatus}
+                thinkingActive={thinkingEnabled}
+                modelName={state.activeModel?.name}
+              />
+            ))}
 
           <div ref={messagesEndRef} />
         </div>
       </main>
 
-      {/* Composer */}
       <footer
         className="sticky bottom-0 z-20 border-t px-3 sm:px-4 py-3"
         style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       >
         <div className="max-w-3xl mx-auto space-y-2">
-          {/* Tool Toggles + Mode/Model Chips */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
               <button
@@ -575,7 +629,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 }}
               >
                 <Brain size={13} />
-                <span>تفكير عميق</span>
+                <span>{translate(language, 'thinkingToggle')}</span>
               </button>
 
               <button
@@ -589,7 +643,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 }}
               >
                 <Globe size={13} />
-                <span>بحث الويب</span>
+                <span>{translate(language, 'webSearchToggle')}</span>
               </button>
             </div>
 
@@ -615,7 +669,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
               onClick={() => setMediaOpen(true)}
               className="p-2 rounded-full hover:bg-black/5 cursor-pointer disabled:opacity-40 shrink-0"
               style={{ color: 'var(--muted)' }}
-              title="إرفاق ملف أو صورة أو رابط"
+              title={translate(language, 'attachMedia')}
             >
               <Plus size={19} />
             </button>
@@ -626,7 +680,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
               onClick={handleToggleDictation}
               className="p-2 rounded-full hover:bg-black/5 cursor-pointer disabled:opacity-40 shrink-0"
               style={{ color: dictating ? 'var(--error)' : 'var(--muted)' }}
-              title={dictating ? 'إيقاف الإملاء الصوتي' : 'إملاء صوتي'}
+              title={dictating ? (isEn ? 'Stop dictation' : 'إيقاف الإملاء الصوتي') : (isEn ? 'Voice dictation' : 'إملاء صوتي')}
             >
               {dictating ? <MicOff size={18} /> : <Mic size={18} />}
             </button>
@@ -640,7 +694,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                   handleSend();
                 }
               }}
-              placeholder="اكتب رسالتك هنا..."
+              placeholder={translate(language, 'writeMessage')}
               rows={1}
               className="flex-1 bg-transparent py-2 text-sm outline-none resize-none max-h-36 leading-relaxed"
               style={{ color: 'var(--foreground)' }}
@@ -652,7 +706,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 onClick={() => void cancelGeneration()}
                 className="p-2.5 rounded-full text-white cursor-pointer shrink-0"
                 style={{ backgroundColor: 'var(--error)' }}
-                title="إيقاف التوليد"
+                title={translate(language, 'stopGeneration')}
               >
                 <Square size={15} />
               </button>
@@ -663,7 +717,7 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                 onClick={handleSend}
                 className="p-2.5 rounded-full text-white cursor-pointer disabled:opacity-40 shrink-0"
                 style={{ backgroundColor: 'var(--primary)' }}
-                title="إرسال"
+                title={translate(language, 'send')}
               >
                 <Send size={16} />
               </button>
@@ -678,7 +732,6 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
         onAddAttachment={(att) => setAttachments((prev) => [...prev, att])}
       />
 
-      {/* Branches Modal */}
       {branchesOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-4"
@@ -690,7 +743,9 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
-              <h3 className="text-base font-bold">الفروع المحفوظة ({branches.length})</h3>
+              <h3 className="text-base font-bold">
+                {translate(language, 'savedBranches')} ({branches.length})
+              </h3>
               <button
                 type="button"
                 onClick={() => setBranchesOpen(false)}
@@ -703,7 +758,9 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {branches.length === 0 ? (
                 <p className="text-xs text-center py-8" style={{ color: 'var(--muted)' }}>
-                  تُحفظ الفروع تلقائياً عند تعديل سؤال أو إعادة توليد رد أو تبديل نسخة الرد.
+                  {isEn
+                    ? 'Branches are automatically saved before editing a prompt, regenerating, or switching reply versions.'
+                    : 'تُحفظ الفروع تلقائياً عند تعديل سؤال أو إعادة توليد رد أو تبديل نسخة الرد.'}
                 </p>
               ) : (
                 branches.map((branch) => (
@@ -715,7 +772,8 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold truncate">{branch.label}</p>
                       <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
-                        {branch.messages.length} رسالة · {new Date(branch.createdAt).toLocaleString('ar-SA')}
+                        {isEn ? `${branch.messages.length} msgs` : `${branch.messages.length} رسالة`} ·{' '}
+                        {new Date(branch.createdAt).toLocaleString(isEn ? 'en-US' : 'ar-SA')}
                       </p>
                     </div>
                     <button
@@ -723,12 +781,12 @@ export function ChatPage({ conversationId }: { conversationId: string }) {
                       onClick={() => {
                         void restoreBranch(branch.id);
                         setBranchesOpen(false);
-                        showToast('تمت استعادة الفرع', 'success');
+                        showToast(isEn ? 'Branch restored' : 'تمت استعادة الفرع', 'success');
                       }}
                       className="px-3 py-1.5 rounded-xl text-xs font-bold text-white cursor-pointer"
                       style={{ backgroundColor: 'var(--primary)' }}
                     >
-                      استعادة
+                      {translate(language, 'restore')}
                     </button>
                   </div>
                 ))

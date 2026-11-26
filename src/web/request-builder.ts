@@ -5,6 +5,7 @@ import {
   validateAttachments,
   type AttachmentProgressCallback,
   type ChatAttachment,
+  type ExtractedLinkText,
   type PreparedInlineAttachment,
 } from './attachment-service';
 import { isDocumentExtractableMime } from './document-extractor';
@@ -37,6 +38,7 @@ export interface BuiltRequest {
 export interface AttachmentReader {
   extract: typeof extractTextAttachments;
   inline: typeof prepareInlineAttachments;
+  fetchUrl?: (url: string) => Promise<ExtractedLinkText>;
 }
 
 export const defaultAttachmentReader: AttachmentReader = {
@@ -83,6 +85,26 @@ export async function snapshotAttachments(
     progress?.(p);
   };
   const extracted = await reader.extract(validated, onProgress);
+
+  const linkAttachments = validated.filter((a) => a.type === 'link' && Boolean(a.data.url));
+  const extractedLinks: ExtractedLinkText[] = [];
+  if (reader.fetchUrl && linkAttachments.length > 0) {
+    for (const [idx, link] of linkAttachments.entries()) {
+      const targetUrl = link.data.url!;
+      onProgress({ current: idx + 1, total: linkAttachments.length, name: targetUrl, stage: 'reading' });
+      try {
+        const fetched = await reader.fetchUrl(targetUrl);
+        extractedLinks.push({ url: targetUrl, title: fetched.title, text: fetched.text });
+        onProgress({ current: idx + 1, total: linkAttachments.length, name: targetUrl, stage: 'ready' });
+      } catch (err) {
+        extractedLinks.push({
+          url: targetUrl,
+          text: `[تعذر جلب محتوى الرابط تلقائياً: ${err instanceof Error ? err.message : 'غير متاح'}]`,
+        });
+      }
+    }
+  }
+
   const documentSources = validated.filter(
     (a) => a.type !== 'link' && isDocumentExtractableMime(a.data.mimeType ?? '', a.name || a.data.name || ''),
   );
@@ -90,12 +112,12 @@ export async function snapshotAttachments(
   const inlineCandidates =
     route === 'local'
       ? binary.filter((a) => (a.data.mimeType ?? '').startsWith('image/'))
-      : [...binary, ...documentSources.filter((a) => a.data.mimeType === 'application/pdf')];
+      : [...binary, ...(model.provider === 'gemini' ? documentSources.filter((a) => a.data.mimeType === 'application/pdf') : [])];
   const inline = await reader.inline(inlineCandidates, onProgress);
   if (skipped || extracted.length !== documentSources.length || inline.length !== inlineCandidates.length) {
     throw new Error('تعذر تجهيز جميع مصادر الرسالة؛ أعد اختيار المرفق.');
   }
-  return { version: 1, context: buildAttachmentContext(validated, extracted), inline };
+  return { version: 1, context: buildAttachmentContext(validated, extracted, extractedLinks), inline };
 }
 
 export async function buildRequest(options: {
@@ -129,8 +151,8 @@ export async function buildRequest(options: {
     web: Boolean(options.features?.web),
   };
   const featurePrompt = [
-    features.thinking ? '\n[وضع التفكير مفعّل: استخدم reasoning الداخلي للنموذج إن كان مدعوماً.]' : '',
-    features.web ? '\n[وضع الويب مفعّل: استخدم أداة البحث المهيأة إن كانت متاحة، ولا تخترع نتائج أو روابط.]' : '',
+    features.thinking ? '\n[وضع التفكير العميق مفعّل]' : '',
+    features.web ? '\n[وضع البحث في الويب مفعّل: اعتمد على نتائج ومصادر البحث المتاحة ولا تخترع روابط.]' : '',
   ].join('');
   return {
     route,

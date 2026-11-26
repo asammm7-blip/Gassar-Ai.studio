@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Image as ImageIcon, FileText, Link2, X } from 'lucide-react';
 import type { ChatAttachment } from '../attachment-service';
 import { useToast } from '../contexts/ToastContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 
 interface MediaMenuProps {
   visible: boolean;
@@ -11,6 +12,8 @@ interface MediaMenuProps {
 
 export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps) {
   const { showToast } = useToast();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [linkMode, setLinkMode] = useState(false);
@@ -22,7 +25,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
     new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-      reader.onerror = () => reject(new Error('تعذر قراءة الملف'));
+      reader.onerror = () => reject(new Error(isEn ? 'Failed to read file' : 'تعذر قراءة الملف'));
       reader.readAsDataURL(file);
     });
 
@@ -46,7 +49,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
       }
       onClose();
     } catch {
-      showToast('تعذر تحميل الصورة المحددة', 'error');
+      showToast(isEn ? 'Could not load selected image' : 'تعذر تحميل الصورة المحددة', 'error');
     }
   };
 
@@ -70,7 +73,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
       }
       onClose();
     } catch {
-      showToast('تعذر قراءة الملف المحدد', 'error');
+      showToast(isEn ? 'Could not read selected file' : 'تعذر قراءة الملف المحدد', 'error');
     }
   };
 
@@ -78,7 +81,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
     e.preventDefault();
     const trimmed = linkUrl.trim();
     if (!/^https?:\/\//i.test(trimmed)) {
-      showToast('أدخل رابطاً يبدأ بـ http:// أو https://', 'error');
+      showToast(isEn ? 'Enter a URL starting with http:// or https://' : 'أدخل رابطاً يبدأ بـ http:// أو https://', 'error');
       return;
     }
     onAddAttachment({
@@ -102,7 +105,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold">إرفاق وسائط أو ملفات</h3>
+          <h3 className="text-base font-bold">{isEn ? 'Attach Media or Files' : 'إرفاق وسائط أو ملفات'}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -124,7 +127,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.txt,.md,.csv,.json,.xml,.rtf,.xls,.xlsx"
+          accept=".pdf,.docx,.txt,.md,.csv,.json,.xml,.rtf,.xls,.xlsx"
           multiple
           className="hidden"
           onChange={handleFilesSelected}
@@ -144,7 +147,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
               >
                 <ImageIcon size={20} />
               </div>
-              <span className="text-xs font-bold">صورة</span>
+              <span className="text-xs font-bold">{isEn ? 'Image' : 'صورة'}</span>
             </button>
 
             <button
@@ -159,7 +162,7 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
               >
                 <FileText size={20} />
               </div>
-              <span className="text-xs font-bold">ملف / مستند</span>
+              <span className="text-xs font-bold">{isEn ? 'Document' : 'ملف / مستند'}</span>
             </button>
 
             <button
@@ -174,13 +177,13 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
               >
                 <Link2 size={20} />
               </div>
-              <span className="text-xs font-bold">رابط ويب</span>
+              <span className="text-xs font-bold">{isEn ? 'Web Link' : 'رابط ويب'}</span>
             </button>
           </div>
         ) : (
           <form onSubmit={handleLinkSubmit} className="space-y-3">
             <label className="block text-xs font-semibold" style={{ color: 'var(--muted)' }}>
-              أدخل رابط الصفحة (https://...)
+              {isEn ? 'Enter page URL (https://...)' : 'أدخل رابط الصفحة (https://...)'}
             </label>
             <input
               autoFocus
@@ -199,14 +202,14 @@ export function MediaMenu({ visible, onClose, onAddAttachment }: MediaMenuProps)
                 className="px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer"
                 style={{ borderColor: 'var(--border)' }}
               >
-                رجوع
+                {isEn ? 'Back' : 'رجوع'}
               </button>
               <button
                 type="submit"
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-white cursor-pointer"
                 style={{ backgroundColor: 'var(--primary)' }}
               >
-                إضافة الرابط
+                {isEn ? 'Add Link' : 'إضافة الرابط'}
               </button>
             </div>
           </form>

@@ -5,6 +5,7 @@ import { useRouter } from '../contexts/RouterContext';
 import { cloudModelService, type CloudModelDefinition } from '../cloud-model-service';
 import { localModelManager, type LocalModel } from '../local-model-manager';
 import { useToast } from '../contexts/ToastContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
 
 interface ModelDropdownProps {
   compact?: boolean;
@@ -12,6 +13,8 @@ interface ModelDropdownProps {
 
 export function ModelDropdown({ compact = false }: ModelDropdownProps) {
   const { state, selectModel } = useChatContext();
+  const { language } = useAppSettings();
+  const isEn = language === 'en';
   const router = useRouter();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
@@ -46,7 +49,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
       await selectModel(model);
       setOpen(false);
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر تبديل النموذج', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to switch model' : 'تعذر تبديل النموذج'), 'error');
     }
   };
 
@@ -55,7 +58,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
       await selectModel(model);
       setOpen(false);
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'تعذر تفعيل النموذج المحلي', 'error');
+      showToast(error instanceof Error ? error.message : (isEn ? 'Failed to activate local model' : 'تعذر تفعيل النموذج المحلي'), 'error');
     }
   };
 
@@ -78,7 +81,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
         ) : (
           <Cpu size={13} style={{ color: 'var(--secondary)' }} />
         )}
-        <span className="max-w-[130px] truncate">{state.activeModel?.name ?? 'اختر نموذجاً'}</span>
+        <span className="max-w-[130px] truncate">{state.activeModel?.name ?? (isEn ? 'Select Model' : 'اختر نموذجاً')}</span>
         <ChevronDown size={13} style={{ color: 'var(--muted)' }} />
       </button>
 
@@ -94,9 +97,9 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
           >
             <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
               <div>
-                <h3 className="text-base font-bold">اختر النموذج</h3>
+                <h3 className="text-base font-bold">{isEn ? 'Select Model' : 'اختر النموذج'}</h3>
                 <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  النماذج السحابية والمحلية المسجلة
+                  {isEn ? 'Cloud and registered local models' : 'النماذج السحابية والمحلية المسجلة'}
                 </p>
               </div>
               <button
@@ -110,10 +113,9 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Cloud Models */}
               <div>
                 <p className="text-xs font-bold mb-2 px-1" style={{ color: 'var(--muted)' }}>
-                  النماذج السحابية
+                  {isEn ? 'Cloud Models' : 'النماذج السحابية'}
                 </p>
                 <div className="space-y-2">
                   {cloudModels.map((item) => {
@@ -140,7 +142,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
                                 color: ready ? 'var(--success)' : 'var(--muted)',
                               }}
                             >
-                              {ready ? 'متصل' : 'غير مضبوط'}
+                              {ready ? (isEn ? 'Connected' : 'متصل') : (isEn ? 'Not configured' : 'غير مضبوط')}
                             </span>
                           </div>
                           <p className="text-xs truncate mt-0.5" style={{ color: 'var(--muted)' }}>
@@ -154,14 +156,15 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
                 </div>
               </div>
 
-              {/* Local Models */}
               <div>
                 <p className="text-xs font-bold mb-2 px-1" style={{ color: 'var(--muted)' }}>
-                  النماذج المحلية (GGUF)
+                  {isEn ? 'Local Models (GGUF)' : 'النماذج المحلية (GGUF)'}
                 </p>
                 {localModels.length === 0 ? (
                   <p className="text-xs px-2 py-2" style={{ color: 'var(--muted)' }}>
-                    لا توجد ملفات GGUF مسجلة. يمكنك إضافتها من صفحة النماذج.
+                    {isEn
+                      ? 'No GGUF files registered. You can add them on the Models page.'
+                      : 'لا توجد ملفات GGUF مسجلة. يمكنك إضافتها من صفحة النماذج.'}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -206,7 +209,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
                 className="flex-1 py-2 px-3 rounded-xl text-xs font-bold border cursor-pointer hover:opacity-85"
                 style={{ borderColor: 'var(--border)' }}
               >
-                إدارة النماذج
+                {isEn ? 'Manage Models' : 'إدارة النماذج'}
               </button>
               <button
                 type="button"
@@ -218,7 +221,7 @@ export function ModelDropdown({ compact = false }: ModelDropdownProps) {
                 style={{ backgroundColor: 'var(--primary)' }}
               >
                 <Settings2 size={14} />
-                <span>إعدادات النموذج</span>
+                <span>{isEn ? 'Model Settings' : 'إعدادات النموذج'}</span>
               </button>
             </div>
           </div>

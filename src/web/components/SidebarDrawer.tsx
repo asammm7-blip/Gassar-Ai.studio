@@ -18,6 +18,8 @@ import {
 import { useChatContext } from '../contexts/ChatContext';
 import { useRouter } from '../contexts/RouterContext';
 import { useToast } from '../contexts/ToastContext';
+import { useAppSettings } from '../contexts/AppSettingsContext';
+import { translate } from '../i18n';
 
 interface SidebarDrawerProps {
   visible: boolean;
@@ -37,6 +39,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
     toggleConversationFavorite,
     toggleConversationArchived,
   } = useChatContext();
+  const { language } = useAppSettings();
   const router = useRouter();
   const { confirm, showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +57,9 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
 
   if (!visible) return null;
 
+  const isEn = language === 'en';
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
+
   const handleNewChat = () => {
     const id = createNewConversation();
     onClose();
@@ -69,14 +75,14 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
   const handleDelete = async (id: string, title: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const ok = await confirm({
-      title: 'حذف المحادثة',
-      message: `هل تريد حذف "${title}"؟`,
-      confirmLabel: 'حذف',
+      title: isEn ? 'Delete Conversation' : 'حذف المحادثة',
+      message: isEn ? `Delete "${title}"?` : `هل تريد حذف "${title}"؟`,
+      confirmLabel: isEn ? 'Delete' : 'حذف',
       destructive: true,
     });
     if (ok) {
       await deleteConversation(id);
-      showToast('تم حذف المحادثة', 'info');
+      showToast(isEn ? 'Conversation deleted' : 'تم حذف المحادثة', 'info');
     }
   };
 
@@ -86,14 +92,12 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
   };
 
   const modeLabel =
-    state.connectionMode === 'offline' ? 'أوفلاين' : state.connectionMode === 'online' ? 'أونلاين' : 'تلقائي';
+    state.connectionMode === 'offline' ? t('modeOffline') : state.connectionMode === 'online' ? t('modeOnline') : t('modeAuto');
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
 
-      {/* Drawer Panel */}
       <aside
         className="relative z-10 flex flex-col w-[300px] max-w-[85vw] h-full border-e shadow-2xl"
         style={{
@@ -102,11 +106,10 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
           color: 'var(--foreground)',
         }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2.5">
             <img
-              src="/assets/images/icon.png"
+              src="/pwa-192x192.png"
               alt="Gassar.AI"
               className="w-8 h-8 rounded-xl object-cover"
               onError={(e) => {
@@ -115,10 +118,10 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             />
             <div>
               <h2 className="text-base font-extrabold tracking-tight" style={{ color: 'var(--primary)' }}>
-                Gassar.AI
+                {t('appName')}
               </h2>
               <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
-                المساعد الذكي المتكامل
+                {t('appSubtitle')}
               </p>
             </div>
           </div>
@@ -127,13 +130,12 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             onClick={onClose}
             className="p-1.5 rounded-xl hover:opacity-80 cursor-pointer"
             style={{ color: 'var(--muted)' }}
-            aria-label="إغلاق القائمة"
+            aria-label={isEn ? 'Close menu' : 'إغلاق القائمة'}
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* New Chat + Search */}
         <div className="p-3 space-y-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
           <button
             type="button"
@@ -142,7 +144,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             style={{ backgroundColor: 'var(--primary)' }}
           >
             <Plus size={18} />
-            <span>محادثة جديدة</span>
+            <span>{t('newChat')}</span>
           </button>
 
           <div
@@ -154,7 +156,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث في المحادثات..."
+              placeholder={t('searchChats')}
               className="w-full bg-transparent text-xs outline-none"
               style={{ color: 'var(--foreground)' }}
             />
@@ -170,13 +172,12 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             )}
           </div>
 
-          {/* Filter Tabs */}
           <div className="grid grid-cols-3 gap-1 p-1 rounded-xl" style={{ backgroundColor: 'var(--surface)' }}>
             {(
               [
-                { id: 'recent', label: 'الأخيرة' },
-                { id: 'favorite', label: 'المفضلة' },
-                { id: 'archived', label: 'الأرشيف' },
+                { id: 'recent', label: t('tabRecent') },
+                { id: 'favorite', label: t('tabFavorite') },
+                { id: 'archived', label: t('tabArchived') },
               ] as const
             ).map((tab) => {
               const active = activeTab === tab.id;
@@ -198,19 +199,26 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
           </div>
         </div>
 
-        {/* Conversations List */}
         <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
           {filteredConversations.length === 0 ? (
             <div className="py-12 px-4 text-center">
               <MessageSquare size={28} className="mx-auto mb-2 opacity-40" style={{ color: 'var(--muted)' }} />
               <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
                 {searchQuery
-                  ? 'لا توجد نتائج مطابقة للبحث'
+                  ? isEn
+                    ? 'No matching results'
+                    : 'لا توجد نتائج مطابقة للبحث'
                   : activeTab === 'favorite'
-                    ? 'لا توجد محادثات مفضلة بعد'
+                    ? isEn
+                      ? 'No favorite conversations yet'
+                      : 'لا توجد محادثات مفضلة بعد'
                     : activeTab === 'archived'
-                      ? 'الأرشيف فارغ'
-                      : 'لا توجد محادثات محفوظة'}
+                      ? isEn
+                        ? 'Archive is empty'
+                        : 'الأرشيف فارغ'
+                      : isEn
+                        ? 'No saved conversations'
+                        : 'لا توجد محادثات محفوظة'}
               </p>
             </div>
           ) : (
@@ -234,10 +242,10 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
                       {conv.pinned && <Pin size={11} style={{ color: 'var(--primary)' }} className="shrink-0" />}
-                      <p className="text-xs font-semibold truncate">{conv.title || 'محادثة بدون عنوان'}</p>
+                      <p className="text-xs font-semibold truncate">{conv.title || (isEn ? 'Untitled Chat' : 'محادثة بدون عنوان')}</p>
                     </div>
                     <p className="text-[11px] truncate" style={{ color: 'var(--muted)' }}>
-                      {conv.messages.length} رسالة
+                      {isEn ? `${conv.messages.length} messages` : `${conv.messages.length} رسالة`}
                     </p>
                   </div>
 
@@ -249,7 +257,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
                         void toggleConversationPinned(conv.id);
                       }}
                       className="p-1 rounded-lg hover:bg-black/5 cursor-pointer"
-                      title={conv.pinned ? 'إلغاء التثبيت' : 'تثبيت'}
+                      title={conv.pinned ? (isEn ? 'Unpin' : 'إلغاء التثبيت') : (isEn ? 'Pin' : 'تثبيت')}
                       style={{ color: conv.pinned ? 'var(--primary)' : 'var(--muted)' }}
                     >
                       <Pin size={13} />
@@ -261,7 +269,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
                         void toggleConversationFavorite(conv.id);
                       }}
                       className="p-1 rounded-lg hover:bg-black/5 cursor-pointer"
-                      title={conv.favorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+                      title={conv.favorite ? (isEn ? 'Unfavorite' : 'إزالة من المفضلة') : (isEn ? 'Favorite' : 'إضافة للمفضلة')}
                       style={{ color: conv.favorite ? 'var(--warning)' : 'var(--muted)' }}
                     >
                       <Star size={13} fill={conv.favorite ? 'currentColor' : 'none'} />
@@ -273,7 +281,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
                         void toggleConversationArchived(conv.id);
                       }}
                       className="p-1 rounded-lg hover:bg-black/5 cursor-pointer"
-                      title={conv.archived ? 'إلغاء الأرشفة' : 'أرشفة'}
+                      title={conv.archived ? (isEn ? 'Unarchive' : 'إلغاء الأرشفة') : (isEn ? 'Archive' : 'أرشفة')}
                       style={{ color: conv.archived ? 'var(--secondary)' : 'var(--muted)' }}
                     >
                       <Archive size={13} />
@@ -282,7 +290,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
                       type="button"
                       onClick={(e) => void handleDelete(conv.id, conv.title, e)}
                       className="p-1 rounded-lg hover:bg-black/5 cursor-pointer"
-                      title="حذف"
+                      title={isEn ? 'Delete' : 'حذف'}
                       style={{ color: 'var(--error)' }}
                     >
                       <Trash2 size={13} />
@@ -294,7 +302,6 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
           )}
         </div>
 
-        {/* Footer Nav */}
         <div className="p-3 border-t space-y-1.5" style={{ borderColor: 'var(--border)' }}>
           <div
             className="flex items-center justify-between px-3 py-2 rounded-xl text-xs"
@@ -306,10 +313,12 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
               ) : (
                 <Wifi size={14} style={{ color: 'var(--success)' }} />
               )}
-              <span className="font-semibold">وضع الاتصال: {modeLabel}</span>
+              <span className="font-semibold">
+                {t('connectionMode')}: {modeLabel}
+              </span>
             </div>
             <span className="text-[11px] truncate max-w-[100px]" style={{ color: 'var(--muted)' }}>
-              {state.activeModel?.name ?? 'بدون نموذج'}
+              {state.activeModel?.name ?? (isEn ? 'No model' : 'بدون نموذج')}
             </span>
           </div>
 
@@ -320,7 +329,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             style={{ backgroundColor: 'var(--surface)' }}
           >
             <Cpu size={17} style={{ color: 'var(--primary)' }} />
-            <span>النماذج</span>
+            <span>{t('models')}</span>
           </button>
 
           <button
@@ -330,7 +339,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             style={{ backgroundColor: 'var(--surface)' }}
           >
             <Server size={17} style={{ color: 'var(--secondary)' }} />
-            <span>الخادم المحلي</span>
+            <span>{t('localServer')}</span>
           </button>
 
           <button
@@ -340,7 +349,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             style={{ backgroundColor: 'var(--surface)' }}
           >
             <Sparkles size={17} style={{ color: 'var(--accent)' }} />
-            <span>المحادثة الصوتية</span>
+            <span>{t('voiceChat')}</span>
           </button>
 
           <button
@@ -350,7 +359,7 @@ export function SidebarDrawer({ visible, onClose }: SidebarDrawerProps) {
             style={{ backgroundColor: 'var(--surface)' }}
           >
             <Settings size={17} style={{ color: 'var(--muted)' }} />
-            <span>الإعدادات</span>
+            <span>{t('settings')}</span>
           </button>
         </div>
       </aside>

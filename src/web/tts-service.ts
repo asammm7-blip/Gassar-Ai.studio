@@ -29,7 +29,7 @@ export type TtsPlaybackState = {
 };
 
 const DEFAULT_TTS_SETTINGS: TtsSettings = {
-  enabled: false,
+  enabled: true,
   autoRead: false,
   rate: 0.95,
   voice: 'default',
@@ -73,7 +73,7 @@ export async function getTtsSettings(): Promise<TtsSettings> {
   const voice = stored[TTS_SETTINGS_KEYS.voice];
 
   return {
-    enabled: stored[TTS_SETTINGS_KEYS.enabled] === 'true',
+    enabled: stored[TTS_SETTINGS_KEYS.enabled] !== 'false',
     autoRead: stored[TTS_SETTINGS_KEYS.autoRead] === 'true',
     rate: Number.isFinite(rate) ? Math.min(1.5, Math.max(0.5, rate)) : DEFAULT_TTS_SETTINGS.rate,
     voice: voice && voice.trim().length > 0 ? voice : DEFAULT_TTS_SETTINGS.voice,
